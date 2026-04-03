@@ -1,37 +1,32 @@
 package org.sid.pfespring.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.sid.pfespring.dto.EtudiantDTO;
+import org.sid.pfespring.dto.RequestEtudiantDTO;
+import org.sid.pfespring.dto.ResponseEtudiantDTO;
+import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.services.EtudiantService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/etudiants")
-
-public class EtudiantController {
-
-    private final EtudiantService etudiantService;
-    public EtudiantController(EtudiantService etudiantService) {
-        this.etudiantService = etudiantService;
+@RequestMapping("/etudiants")
+public class EtudiantController extends AbstractController<
+        RequestEtudiantDTO,
+        ResponseEtudiantDTO> {
+private EtudiantService etudiantService;
+    public EtudiantController(EtudiantService service) {
+        super(service);
+        this.etudiantService = service;
     }
-
     @PostMapping("/import")
-    public ResponseEntity<List<EtudiantDTO.Response>> importerExcel(
+    public ResponseEntity<List<ResponseEtudiantDTO>> importExcel(
             @RequestParam("file") MultipartFile file) {
 
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        List<EtudiantDTO.Response> imported = etudiantService.importFromExcel(file);
-        return ResponseEntity.ok(imported);
+        return ResponseEntity.ok(etudiantService.importFromExcel(file));
     }
 }

@@ -1,12 +1,13 @@
 package org.sid.pfespring.services;
 
-import org.apache.poi.ss.usermodel.*;
-import org.sid.pfespring.dto.EtudiantDTO;
+import org.sid.pfespring.dto.RequestEtudiantDTO;
+import org.sid.pfespring.dto.ResponseEtudiantDTO;
+import org.sid.pfespring.mapper.EtudiantMapper;
 import org.sid.pfespring.model.Etudiant;
-import org.sid.pfespring.model.Filiere;
 import org.sid.pfespring.repository.EtudiantRepository;
+import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -14,67 +15,64 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class EtudiantServiceImpl implements EtudiantService {
 
-    private final EtudiantRepository etudiantRepository;
+public class EtudiantServiceImpl extends AbstractService<
+        Etudiant,
+        RequestEtudiantDTO,
+        ResponseEtudiantDTO> implements EtudiantService {
 
-    public EtudiantServiceImpl(EtudiantRepository etudiantRepository) {
-        this.etudiantRepository = etudiantRepository;
+    public EtudiantServiceImpl(EtudiantRepository repository,
+                               EtudiantMapper mapper) {
+        super(repository, mapper);
     }
 
     @Override
     @Transactional
-    public List<EtudiantDTO.Response> importFromExcel(MultipartFile file) {
-        List<EtudiantDTO.Response> results = new ArrayList<>();
+    public List<ResponseEtudiantDTO> importFromExcel(MultipartFile file) {
+
+        List<ResponseEtudiantDTO> results = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+
             Sheet sheet = workbook.getSheetAt(1);
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                String cne    = formatter.formatCellValue(row.getCell(0)).trim();
-                String nom    = formatter.formatCellValue(row.getCell(1)).trim();
+                String cne = formatter.formatCellValue(row.getCell(0)).trim();
+                String nom = formatter.formatCellValue(row.getCell(1)).trim();
                 String prenom = formatter.formatCellValue(row.getCell(2)).trim();
-                String filiere = formatter.formatCellValue(row.getCell(3)).trim();
+                String filiere = formatter.formatCellValue(row.getCell(3))
+                        .trim()
+                        .toUpperCase()
+                        .replace(" ", "_")
+                        .replace("É", "E")
+                        .replace("È", "E")
+                        .replace("Ê", "E")
+                        .replace("Ç", "C")
+                        .replace("À", "A");
 
-                // Log temporaire — supprime après validation
-                System.out.println("Row " + i + " → cne='" + cne + "' | filiere='" + filiere + "'");
+                //  Skip lignes vides
+                if (cne.isBlank() || nom.isBlank() || filiere.isBlank()) continue;
 
-                // Skip lignes vides
-                if (cne.isBlank() || filiere.isBlank()) continue;
+                //  Construire le DTO
+                RequestEtudiantDTO request = new RequestEtudiantDTO();
+                request.setCne(cne);
+                request.setNom(nom);
+                request.setPrenom(prenom);
+                request.setFiliere(filiere);
 
-                Etudiant etudiant = new Etudiant();
-                etudiant.setCne(cne);
-                etudiant.setNom(nom);
-                etudiant.setPrenom(prenom);
+                // Utiliser la logique générique
+                ResponseEtudiantDTO saved = this.creer(request);
 
-                try {
-                    etudiant.setFiliere(Filiere.valueOf(filiere.toUpperCase()));
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeException(
-                            "Filière invalide à la ligne " + (i + 1) +
-                                    " : '" + filiere + "'. Valeurs acceptées : " +
-                                    java.util.Arrays.stream(Filiere.values())
-                                            .map(Enum::name)
-                                            .collect(java.util.stream.Collectors.joining(", "))
-                    );
-                }
-
-                Etudiant saved = etudiantRepository.save(etudiant);
-
-                EtudiantDTO.Response dto = new EtudiantDTO.Response();
-                dto.setCne(saved.getCne());
-                dto.setNom(saved.getNom());
-                dto.setPrenom(saved.getPrenom());
-                dto.setFiliere(saved.getFiliere());
-                results.add(dto);
+                results.add(saved);
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lecture fichier Excel : " + e.getMessage(), e);
+            throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
         }
 
         return results;

@@ -1,86 +1,81 @@
 package org.sid.pfespring.services;
 
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
-import org.sid.pfespring.dto.ProfDTO;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.sid.pfespring.dto.RequestProfDTO;
+import org.sid.pfespring.dto.ResponseProfDTO;
+import org.sid.pfespring.mapper.ProfMapper;
 import org.sid.pfespring.model.Prof;
-import org.sid.pfespring.model.Specialite;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 @Service
-public class ProfServiceImpl implements ProfService {
+public class ProfServiceImpl extends AbstractService<
+        Prof,
+        RequestProfDTO,
+        ResponseProfDTO> implements ProfService {
 
-    private final ProfRepository profRepository;
-
-    public ProfServiceImpl(ProfRepository profRepository) {
-        this.profRepository = profRepository;
+    public ProfServiceImpl(ProfRepository repository,
+                           ProfMapper mapper) {
+        super(repository, mapper);
     }
-
     @Override
     @Transactional
-    public List<ProfDTO.Response> importFromExcel(MultipartFile file) {
-        List<ProfDTO.Response> results = new ArrayList<>();
+    public List<ResponseProfDTO> importFromExcel(MultipartFile file) {
+
+        List<ResponseProfDTO> results = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-
 
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                String nom       = formatter.formatCellValue(row.getCell(0)).trim();
-                String prenom    = formatter.formatCellValue(row.getCell(1)).trim();
+                String nom = formatter.formatCellValue(row.getCell(0)).trim();
+                String prenom = formatter.formatCellValue(row.getCell(1)).trim();
                 String specialite = formatter.formatCellValue(row.getCell(2))
                         .trim()
                         .toUpperCase()
-                        .replace(" ", "_")   // "data ai" → "DATA_AI"
-                        .replace("É", "E")   // "réseaux" → "RESEAUX"
+                        .replace(" ", "_")
+                        .replace("É", "E")
                         .replace("È", "E")
                         .replace("Ê", "E")
-                        .replace("Ç", "C")   // "français" → "FRANCAIS"
+                        .replace("Ç", "C")
                         .replace("À", "A");
 
-                // Skip lignes vides
+                String maxEtudiantsStr = formatter.formatCellValue(row.getCell(3)).trim();
+
+                //  Skip lignes vides
                 if (nom.isBlank() || specialite.isBlank()) continue;
 
+                //  Convertir maxEtudiants
+                Integer maxEtudiants = maxEtudiantsStr.isBlank() ? 0 : Integer.parseInt(maxEtudiantsStr);
 
-                Prof prof = new Prof();
-                prof.setNom(nom);
-                prof.setPrenom(prenom);
+                //  Créer Request DTO
+                RequestProfDTO request = new RequestProfDTO();
+                request.setNom(nom);
+                request.setPrenom(prenom);
+                request.setSpecialite(specialite);
+                request.setMaxEtudiants(maxEtudiants);
 
-                try {
-                    prof.setSpecialite(Specialite.valueOf(specialite));
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeException(
-                            "Spécialité invalide à la ligne " + (i + 1) +
-                                    " : '" + specialite + "'. Valeurs acceptées : " +
-                                    java.util.Arrays.stream(Specialite.values())
-                                            .map(Enum::name)
-                                            .collect(java.util.stream.Collectors.joining(", "))
-                    );
-                }
+                //  Utiliser le mapper + repository via service générique
+                ResponseProfDTO saved = this.creer(request);
 
-                Prof saved = profRepository.save(prof);
-
-                ProfDTO.Response dto = new ProfDTO.Response();
-                dto.setId(saved.getId());
-                dto.setNom(saved.getNom());
-                dto.setPrenom(saved.getPrenom());
-                dto.setSpecialite(saved.getSpecialite());
-                results.add(dto);
+                results.add(saved);
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lecture fichier Excel : " + e.getMessage(), e);
+            throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
         }
 
         return results;

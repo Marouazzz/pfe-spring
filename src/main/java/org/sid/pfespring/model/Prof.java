@@ -12,7 +12,9 @@ public class Prof {
     private String nom;
     @Column(name = "prenom" , nullable = false, length = 100)
     private String prenom;
+    @Column(name = "maxEtudiants" , nullable = false, length = 100)
 
+    private Integer maxEtudiants;
     @Enumerated(EnumType.STRING)
     @Column(name = "specialite" , nullable = false)
 

@@ -1,14 +1,13 @@
 package org.sid.pfespring.services;
 
-import org.sid.pfespring.dto.EtudiantDTO;
+import org.sid.pfespring.dto.RequestEtudiantDTO;
+import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
-public interface EtudiantService {
+public interface EtudiantService extends GenericService<RequestEtudiantDTO, ResponseEtudiantDTO>{
 
-     List<EtudiantDTO.Response> importFromExcel(MultipartFile file);
+  List<ResponseEtudiantDTO> importFromExcel(MultipartFile file);
 
 }
