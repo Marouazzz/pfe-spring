@@ -62,12 +62,12 @@ public class ProfServiceImpl extends AbstractService<
                 Integer maxEtudiants = maxEtudiantsStr.isBlank() ? 0 : Integer.parseInt(maxEtudiantsStr);
 
                 //  Créer Request DTO
-                RequestProfDTO request = new RequestProfDTO();
-                request.setNom(nom);
-                request.setPrenom(prenom);
-                request.setSpecialite(specialite);
-                request.setMaxEtudiants(maxEtudiants);
-
+                RequestProfDTO request = new RequestProfDTO(
+                        nom,
+                        prenom,
+                        specialite,
+                        maxEtudiants
+                );
                 //  Utiliser le mapper + repository via service générique
                 ResponseProfDTO saved = this.creer(request);
 

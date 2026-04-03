@@ -59,11 +59,12 @@ public class EtudiantServiceImpl extends AbstractService<
                 if (cne.isBlank() || nom.isBlank() || filiere.isBlank()) continue;
 
                 //  Construire le DTO
-                RequestEtudiantDTO request = new RequestEtudiantDTO();
-                request.setCne(cne);
-                request.setNom(nom);
-                request.setPrenom(prenom);
-                request.setFiliere(filiere);
+                RequestEtudiantDTO request = new RequestEtudiantDTO(
+                        cne,
+                        nom,
+                        prenom,
+                        filiere
+                );
 
                 // Utiliser la logique générique
                 ResponseEtudiantDTO saved = this.creer(request);

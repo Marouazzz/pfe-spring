@@ -3,7 +3,7 @@ package org.sid.pfespring.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
+/*
 @Getter
 @Setter
 public class RequestProfDTO {
@@ -13,4 +13,11 @@ public class RequestProfDTO {
     private int maxEtudiants;
     private String password;
 
-}
+}*/
+
+public record RequestProfDTO(
+        String nom,
+        String prenom,
+        String specialite,
+        Integer maxEtudiants
+) {}

@@ -1,9 +1,8 @@
 package org.sid.pfespring.controller;
-
 import org.sid.pfespring.dto.RequestEtudiantDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
-import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.services.EtudiantService;
+import org.sid.pfespring.services.ProfService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,12 +16,15 @@ import java.util.List;
 @RequestMapping("/etudiants")
 public class EtudiantController extends AbstractController<
         RequestEtudiantDTO,
-        ResponseEtudiantDTO> {
-private EtudiantService etudiantService;
+        ResponseEtudiantDTO>
+{
+private final EtudiantService etudiantService;
+
     public EtudiantController(EtudiantService service) {
         super(service);
         this.etudiantService = service;
     }
+
     @PostMapping("/import")
     public ResponseEntity<List<ResponseEtudiantDTO>> importExcel(
             @RequestParam("file") MultipartFile file) {
