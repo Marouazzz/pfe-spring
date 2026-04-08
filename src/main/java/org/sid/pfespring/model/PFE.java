@@ -1,6 +1,9 @@
 package org.sid.pfespring.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Entity(name="pfes")
 @Data
@@ -23,9 +27,19 @@ public class PFE {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable=false)
+    private String sujet;
 
-    // private String sujet;
-    // private String description;
+    @Column(nullable=false)
+    private String description;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable=false)
+    private Status status = Status.ENCOURS;
+
+    // Define domaine after NLP
+    // ......................
 
     @OneToOne
     @JoinColumn(name="etudiant_id")
