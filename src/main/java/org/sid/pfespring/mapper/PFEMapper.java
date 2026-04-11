@@ -34,7 +34,7 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
         ResponseEtudiantDTO etudiant = this.em.toResponse(entity.getEtudiant());
         if(entity.getProf() != null){
             ResponseProfDTO prof =  this.pm.toResponse(entity.getProf());
-            return new ResponsePFEDTO(entity.getSujet(),entity.getSujet(),entity.getStatus(),etudiant, prof);
+            return new ResponsePFEDTO(entity.getSujet(),entity.getDescription(),entity.getStatus(),etudiant, prof);
         }else{
             return new ResponsePFEDTO(entity.getSujet(), entity.getDescription(), entity.getStatus(), etudiant, null);
         }
