@@ -1,8 +1,6 @@
 package org.sid.pfespring.services;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -15,9 +13,8 @@ import org.sid.pfespring.mapper.EtudiantMapper;
 import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.repository.EtudiantRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class EtudiantServiceImpl extends AbstractService<
@@ -32,13 +29,10 @@ public class EtudiantServiceImpl extends AbstractService<
 
     @Override
     @Transactional
-    public List<ResponseEtudiantDTO> importFromExcel(MultipartFile file) {
-
-        List<ResponseEtudiantDTO> results = new ArrayList<>();
-
+    public  void importFromExcel(MultipartFile file) {
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 
-            Sheet sheet = workbook.getSheetAt(1);
+            Sheet sheet = workbook.getSheet("etu");
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -72,14 +66,12 @@ public class EtudiantServiceImpl extends AbstractService<
 
                 // Utiliser la logique générique
                 ResponseEtudiantDTO saved = this.creer(request);
-
-                results.add(saved);
             }
 
         } catch (IOException e) {
             throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
         }
-
-        return results;
     }
+
+    
 }

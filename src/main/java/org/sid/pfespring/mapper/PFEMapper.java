@@ -1,5 +1,8 @@
 package org.sid.pfespring.mapper;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.sid.pfespring.dto.RequestPFEDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.sid.pfespring.dto.ResponsePFEDTO;
@@ -31,12 +34,17 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
 
     @Override
     public ResponsePFEDTO toResponse(PFE entity) {
-        ResponseEtudiantDTO etudiant = this.em.toResponse(entity.getEtudiant());
-        if(entity.getProf() != null){
-            ResponseProfDTO prof =  this.pm.toResponse(entity.getProf());
-            return new ResponsePFEDTO(entity.getSujet(),entity.getSujet(),entity.getStatus(),etudiant, prof);
+        Set<ResponseEtudiantDTO> etudiants = entity.getEtudiants()
+        .stream()
+        .map(this.em::toResponse)
+        .collect(Collectors.toSet());
+
+        if(entity.getEncadrant() != null){
+            ResponseProfDTO prof =  this.pm.toResponse(entity.getEncadrant().getProf());
+            // This line is wrong logically, fix it later
+            return new ResponsePFEDTO(entity.getSujet(),entity.getDescription(),entity.getStatus(),etudiants, prof);
         }else{
-            return new ResponsePFEDTO(entity.getSujet(), entity.getDescription(), entity.getStatus(), etudiant, null);
+            return new ResponsePFEDTO(entity.getSujet(), entity.getDescription(), entity.getStatus(), etudiants, null);
         }
     }
 

@@ -1,8 +1,6 @@
 package org.sid.pfespring.services;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -30,15 +28,15 @@ public class ProfServiceImpl extends AbstractService<
                            ProfMapper mapper) {
         super(repository, mapper);
     }
+
+    
     @Override
     @Transactional
-    public List<ResponseProfDTO> importFromExcel(MultipartFile file) {
-
-        List<ResponseProfDTO> results = new ArrayList<>();
+    public void importFromExcel(MultipartFile file) {
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 
-            Sheet sheet = workbook.getSheetAt(0);
+            Sheet sheet = workbook.getSheet("profs");
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -74,15 +72,11 @@ public class ProfServiceImpl extends AbstractService<
                         maxEtudiants
                 );
                 //  Utiliser le mapper + repository via service générique
-                ResponseProfDTO saved = this.creer(request);
-
-                results.add(saved);
+                this.creer(request);
             }
 
         } catch (IOException e) {
             throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
         }
-
-        return results;
     }
 }

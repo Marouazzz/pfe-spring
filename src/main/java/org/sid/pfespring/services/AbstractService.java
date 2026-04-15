@@ -1,9 +1,9 @@
 package org.sid.pfespring.services;
 
+import java.util.List;
+
 import org.sid.pfespring.mapper.GenericMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
 
 public abstract class AbstractService<E, Req, Res> implements GenericService<Req, Res> {
 
