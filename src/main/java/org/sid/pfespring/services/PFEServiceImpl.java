@@ -266,15 +266,7 @@ public void appliquerAffectation(List<RequestPFEDTO> pfesDto) {
   @Override
   public byte[] exportPFEAffectation() throws IOException {
     List<Encadrant> encdrant = encadrantrepo.findAll();
-/*     for (Encadrant enc:encdrant){
-        for (PFE p : enc.getPfes()) {
-            System.out.println("PFE " + p.getId());
-            for (Etudiant e : p.getEtudiants()) {
-                System.out.println(" - " + e);
-            }
-        }
-    } */
-        Map<String, Map<Long, String>> affectations = encdrant.stream()
+    Map<String, Map<Long, String>> affectations = encdrant.stream()
     .collect(
         Collectors.toMap(
             e->e.getProf().toString(),
