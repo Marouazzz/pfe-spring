@@ -64,8 +64,8 @@ public class JuryServiceImpl
         profsFrancais.forEach(p -> chargeParProf.put(p.getId(), 0));
 
         for (PFE pfe : pfes) {
-            // FIX : on extrait l'id explicitement pour éviter les faux égaux entre
-            // objets Prof issus de contextes JPA différents (Encadrant vs profsTech)
+            //  on extrait lid explicitement pour eviter les faux egaux entre
+
             Long encId = pfe.getEncadrant().getProf().getId();
             chargeParProf.merge(encId, 1, Integer::sum);
         }
@@ -75,10 +75,10 @@ public class JuryServiceImpl
         for (PFE pfe : pfes) {
 
             Prof encadrantProf = pfe.getEncadrant().getProf();
-            // FIX : comparer uniquement par id (Long), pas par référence d'objet
+            // comparer uniquement par id (Long), pas par reference d'objet
             Long encadrantId = encadrantProf.getId();
 
-            // PROF1 : tech le moins chargé ≠ encadrant (comparaison par id)
+            // PROF1 : tech le moins charge ≠ encadrant (comparaison par id)
             Prof prof1 = profsTech.stream()
                     .filter(p -> !p.getId().equals(encadrantId))          // FIX
                     .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
@@ -140,7 +140,6 @@ public class JuryServiceImpl
         return mapper.toResponseList(saved);
     }
 
-    // FIX : signature avec Long encadrantId au lieu de Prof encadrant
     private Prof fallbackTech(List<Prof> profsTech,
                               Long encadrantId,              // FIX : Long, pas Prof
                               Prof prof1,

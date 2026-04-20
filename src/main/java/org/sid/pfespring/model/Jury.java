@@ -21,12 +21,12 @@ public class Jury {
     @JoinColumn(name = "pfe_id", nullable = false, unique = true)
     private PFE pfe;
 
-    // encadrant.getProf() — copié ici pour lecture directe
+    // encadrant.getProf() — copied ici pour lecture directe
     @ManyToOne
     @JoinColumn(name = "encadrant_id", nullable = false)
     private Prof encadrant;
 
-    // prof technique le moins chargé, ≠ encadrant
+    // prof technique le moins charge, ≠ encadrant
     @ManyToOne
     @JoinColumn(name = "prof1_id", nullable = false)
     private Prof prof1;

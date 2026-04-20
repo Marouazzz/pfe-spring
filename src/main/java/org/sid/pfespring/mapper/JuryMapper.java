@@ -18,7 +18,7 @@ public class JuryMapper extends AbstractMapper<Jury, RequestJuryDTO, ResponseJur
         this.pm = profMapper;
     }
 
-    // Non utilisé — l'algorithme construit Jury directement
+    // Non utilised—
     @Override
     public Jury toEntity(RequestJuryDTO request) {
         return Jury.builder().build();
