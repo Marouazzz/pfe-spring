@@ -7,6 +7,7 @@ import org.sid.pfespring.dto.RequestPFEDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.sid.pfespring.dto.ResponsePFEDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
+import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.springframework.stereotype.Component;
 
@@ -25,11 +26,11 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
 
     @Override
     public PFE toEntity(RequestPFEDTO dto) {
-        return PFE
-        .builder()
-        .sujet(dto.sujet())
-        .description(dto.description())
-        .build();
+        Langue langue = null;
+        if (dto.langue() != null && !dto.langue().isBlank()) {
+            try { langue = Langue.valueOf(dto.langue()); } catch (Exception ignored) {}
+        }
+        return PFE.builder().sujet(dto.sujet()).description(dto.description()).langue(langue).build();
     }
 
     @Override

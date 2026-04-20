@@ -2,16 +2,7 @@ package org.sid.pfespring.model;
 
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -45,6 +36,10 @@ public class PFE {
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private Status status = Status.ENCOURS;
+    //langue ajoute
+    @Enumerated(EnumType.STRING)
+    @Column(name = "langue", nullable = true)
+    private Langue langue;
 
     @OneToMany(mappedBy="pfe")
     private Set<Etudiant> etudiants;
@@ -52,4 +47,7 @@ public class PFE {
     @ManyToOne
     @JoinColumn(name="encadrant_id")
     private Encadrant encadrant;
+
+    @OneToOne(mappedBy = "pfe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Jury jury;
 }

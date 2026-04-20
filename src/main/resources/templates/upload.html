@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<!-- Adding thymeleaf namespace  -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Gestion PFE</title>
 </head>
 <body>
-    <section>
-        <h1>Deposer le fichier Excel :</h1>
-        <div>
-            <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" accept=".xlsx">
-                <input type="submit" value="Save">
-            </form>
-        </div>
-        <div>
-            <button><a th:href="@{/pfes/affectations}">Affecter Les encadrants</a></button>
-        </div>
-    </section>
+<section>
+    <h1>Deposer le fichier Excel :</h1>
+
+    <div>
+        <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".xlsx">
+            <input type="submit" value="Save">
+        </form>
+    </div>
+
+    <div>
+        <button><a th:href="@{/pfes/affectations}">Affecter Les encadrants</a></button>
+    </div>
+
+    <div>
+        <button><a th:href="@{/jurys/affectations}">Affecter les jurys </a></button>
+    </div>
+
+</section>
 </body>
 </html>

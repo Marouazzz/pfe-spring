@@ -13,4 +13,5 @@ import org.springframework.stereotype.Repository;
 public interface ProfRepository extends JpaRepository<Prof,Long> {
     // Utilisation de convention de nommage 
     public List<Prof> findBySpecialiteNotIn(List<Specialite> specialites);
+    List<Prof> findBySpecialite(Specialite specialite);
 }

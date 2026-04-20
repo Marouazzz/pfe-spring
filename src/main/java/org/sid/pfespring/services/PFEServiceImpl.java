@@ -157,8 +157,11 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                     .map(s -> s.replace("\u00A0", ""))
                     .map(String::toUpperCase)
                     .collect(Collectors.toSet());
-                String description = formater.formatCellValue(row.getCell(2)).trim();
-                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet, description);
+                String langue = formater.formatCellValue(row.getCell(2))
+                        .trim().toUpperCase()
+                        .replace("É", "E").replace("È", "E").replace("Ç", "C");
+                if (langue.isBlank()) langue = null;
+                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet, null,langue);
 
                 Set<ConstraintViolation<RequestPFEDTO>> violations = validator.validate(pfedto);
                 if(!violations.isEmpty()){
@@ -279,8 +282,8 @@ public void appliquerAffectation(List<RequestPFEDTO> pfesDto) {
                                                              .collect(Collectors.joining(", "))
                                                 ) 
                                     )
-                        )
-        );
+,(map1, map2) -> { map1.putAll(map2); return map1; }
+        ));
         return excelgenerator.exportPFEAffectationSheet(affectations);
   }
 
