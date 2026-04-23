@@ -10,7 +10,7 @@
     <h1>Deposer le fichier Excel :</h1>
 
     <div>
-        <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
+        <form th:action="@{/home}" method="post" enctype="multipart/form-data">
             <input type="file" name="file" accept=".xlsx">
             <input type="submit" value="Save">
         </form>
@@ -22,6 +22,9 @@
 
     <div>
         <button><a th:href="@{/jurys/affectations}">Affecter les jurys </a></button>
+    </div>
+    <div>
+        <button><a th:href="@{/soutenances/affectations}">Affecter les soutenances </a></button>
     </div>
 
 </section>
