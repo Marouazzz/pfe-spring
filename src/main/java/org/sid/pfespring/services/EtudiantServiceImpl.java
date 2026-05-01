@@ -11,6 +11,7 @@ import org.sid.pfespring.dto.RequestEtudiantDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.sid.pfespring.mapper.EtudiantMapper;
 import org.sid.pfespring.model.Etudiant;
+import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.repository.EtudiantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class EtudiantServiceImpl extends AbstractService<
 
     @Override
     @Transactional
-    public  void importFromExcel(MultipartFile file) {
+    public  void importFromExcel(MultipartFile file,ImportVersion version) {
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 
             Sheet sheet = workbook.getSheet("etu");
@@ -61,7 +62,8 @@ public class EtudiantServiceImpl extends AbstractService<
                         cne,
                         nom,
                         prenom,
-                        filiere
+                        filiere,
+                        version
                 );
 
                 // Utiliser la logique générique

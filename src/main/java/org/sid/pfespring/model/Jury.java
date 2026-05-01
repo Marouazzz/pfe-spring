@@ -1,7 +1,19 @@
 package org.sid.pfespring.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "jurys")
@@ -35,4 +47,8 @@ public class Jury {
     @ManyToOne
     @JoinColumn(name = "prof2_id", nullable = true)
     private Prof prof2;
+    
+    @ManyToOne
+    @JoinColumn(name="version_id")
+    private ImportVersion version;
 }

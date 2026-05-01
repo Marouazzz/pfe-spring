@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.sid.pfespring.dto.RequestProfDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.mapper.ProfMapper;
+import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class ProfServiceImpl extends AbstractService<
     
     @Override
     @Transactional
-    public void importFromExcel(MultipartFile file) {
+    public void importFromExcel(MultipartFile file,ImportVersion version) {
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 
@@ -56,20 +57,16 @@ public class ProfServiceImpl extends AbstractService<
                         .replace("Ç", "C")
                         .replace("À", "A");
 
-                String maxEtudiantsStr = formatter.formatCellValue(row.getCell(3)).trim();
-
                 //  Skip lignes vides
                 if (nom.isBlank() || specialite.isBlank()) continue;
-
-                //  Convertir maxEtudiants
-                Integer maxEtudiants = maxEtudiantsStr.isBlank() ? 0 : Integer.parseInt(maxEtudiantsStr);
 
                 //  Créer Request DTO
                 RequestProfDTO request = new RequestProfDTO(
                         nom,
                         prenom,
                         specialite,
-                        maxEtudiants
+                        version
+
                 );
                 //  Utiliser le mapper + repository via service générique
                 this.creer(request);

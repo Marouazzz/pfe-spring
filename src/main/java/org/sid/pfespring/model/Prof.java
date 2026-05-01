@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,12 +35,14 @@ public class Prof {
     @Column(name = "prenom" , nullable = false, length = 100)
     private String prenom;
 
-    @Column(name = "maxEtudiants" , nullable = false, length = 100)
-    private Integer maxEtudiants;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "specialite" , nullable = false)
     private Specialite specialite ;
+
+    @ManyToOne
+    @JoinColumn(name="version_id")
+    private ImportVersion version;
 
     @Override
     public String toString(){

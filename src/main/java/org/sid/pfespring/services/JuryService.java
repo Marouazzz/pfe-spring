@@ -7,6 +7,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface JuryService extends GenericService<RequestJuryDTO, ResponseJuryDTO> {
-    List<ResponseJuryDTO> affecterJury();
-    byte[] exportJuryExcel() throws IOException;
+    List<ResponseJuryDTO> affecterJury(Long id);
+    byte[] exportJuryExcel(Long id) throws IOException;
 }

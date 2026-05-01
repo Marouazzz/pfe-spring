@@ -11,15 +11,11 @@ import org.apache.poi.ss.usermodel.Row;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-@Component
+
 public class ExcelGenerator {
-    private SXSSFWorkbook workbook;
 
-    public ExcelGenerator(){
-        this.workbook =  new SXSSFWorkbook();
-    }
-
-    public byte[] exportPFEAffectationSheet(Map<String,Map<Long,String>> affectations) throws IOException{
+    public static byte[] exportPFEAffectationSheet(Map<String,Map<Long,String>> affectations) throws IOException{
+        SXSSFWorkbook workbook =  new SXSSFWorkbook();
         SXSSFSheet sheet = workbook.createSheet("affectation_pfes");
         // Max etudiants
         int maxEtudiants = affectations.values()

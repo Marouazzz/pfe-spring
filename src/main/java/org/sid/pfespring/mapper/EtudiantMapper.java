@@ -19,6 +19,7 @@ public class EtudiantMapper
                 .filiere(Filiere.valueOf(
                         request.filiere().trim().toUpperCase()
                 ))
+                .version(request.version())
                 .build();
     }
 

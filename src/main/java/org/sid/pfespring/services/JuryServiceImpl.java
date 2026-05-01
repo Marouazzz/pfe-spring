@@ -1,21 +1,38 @@
 package org.sid.pfespring.services;
 
-import org.apache.poi.ss.usermodel.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.sid.pfespring.dto.RequestJuryDTO;
 import org.sid.pfespring.dto.ResponseJuryDTO;
 import org.sid.pfespring.mapper.JuryMapper;
-import org.sid.pfespring.model.*;
+import org.sid.pfespring.model.Etudiant;
+import org.sid.pfespring.model.ImportVersion;
+import org.sid.pfespring.model.Jury;
+import org.sid.pfespring.model.Langue;
+import org.sid.pfespring.model.PFE;
+import org.sid.pfespring.model.Prof;
+import org.sid.pfespring.model.Specialite;
+import org.sid.pfespring.repository.ImportVersionRepository;
 import org.sid.pfespring.repository.JuryRepository;
 import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class JuryServiceImpl
@@ -24,32 +41,37 @@ public class JuryServiceImpl
 
     private final PFERepository  pfeRepository;
     private final ProfRepository profRepository;
+    private final ImportVersionRepository versrepository;
 
     private static final int ROLES_LIBRES_PAR_JURY = 2;
 
     public JuryServiceImpl(JuryRepository juryRepository,
                            JuryMapper juryMapper,
                            PFERepository pfeRepository,
-                           ProfRepository profRepository) {
+                           ProfRepository profRepository,
+                           ImportVersionRepository versRepository) {
         super(juryRepository, juryMapper);
         this.pfeRepository  = pfeRepository;
         this.profRepository = profRepository;
+        this.versrepository = versRepository;
     }
+
+
 
     @Override
     @Transactional
-    public List<ResponseJuryDTO> affecterJury() {
-
-        List<PFE> pfes = pfeRepository.findAll().stream()
+    public List<ResponseJuryDTO> affecterJury(Long id) {
+        ImportVersion current_version = versrepository.findById(id).get();
+        List<PFE> pfes = pfeRepository.findByVersion(current_version).stream()
                 .filter(pfe -> pfe.getEncadrant() != null)
                 .collect(Collectors.toList());
 
         if (pfes.isEmpty()) return Collections.emptyList();
 
         List<Specialite> specialitesLangue = List.of(Specialite.ANGLAIS, Specialite.FRANCAIS);
-        List<Prof> profsTech     = profRepository.findBySpecialiteNotIn(specialitesLangue);
-        List<Prof> profsAnglais  = profRepository.findBySpecialite(Specialite.ANGLAIS);
-        List<Prof> profsFrancais = profRepository.findBySpecialite(Specialite.FRANCAIS);
+        List<Prof> profsTech     = profRepository.findByVersionAndSpecialiteNotIn(current_version,specialitesLangue);
+        List<Prof> profsAnglais  = profRepository.findByVersionAndSpecialite(current_version,Specialite.ANGLAIS);
+        List<Prof> profsFrancais = profRepository.findByVersionAndSpecialite(current_version,Specialite.FRANCAIS);
 
         int totalProfs = profsTech.size() + profsAnglais.size() + profsFrancais.size();
         if (totalProfs == 0) return Collections.emptyList();
@@ -133,6 +155,7 @@ public class JuryServiceImpl
                     .encadrant(encadrantProf)
                     .prof1(prof1)
                     .prof2(prof2)
+                    .version(current_version)
                     .build());
         }
 
@@ -165,8 +188,9 @@ public class JuryServiceImpl
     }
 
     @Override
-    public byte[] exportJuryExcel() throws IOException {
-        List<Jury> jurys = repository.findAll();
+    public byte[] exportJuryExcel(Long id) throws IOException {
+        ImportVersion current_version = versrepository.findById(id).get();
+        List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Jurys PFE");

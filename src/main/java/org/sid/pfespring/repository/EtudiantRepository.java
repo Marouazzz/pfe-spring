@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.sid.pfespring.model.ImportVersion;
 
 @Repository
 public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
@@ -15,4 +16,6 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
     List<String> findExistingCNE(@Param("cnes") List<String> cnes);
 
     List<Etudiant> findByCneIn(List<String> cnes);
+
+    List<Etudiant> findByVersion(ImportVersion version);
 }

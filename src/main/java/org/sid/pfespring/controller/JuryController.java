@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/jurys")
@@ -24,9 +25,9 @@ public class JuryController extends AbstractController<RequestJuryDTO, ResponseJ
     }
 
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterJury() throws IOException {
-        juryService.affecterJury();
-        byte[] fichier = juryService.exportJuryExcel();
+    public ResponseEntity<byte[]> affecterJury(@RequestParam("id") Long id) throws IOException {
+        juryService.affecterJury(id);
+        byte[] fichier = juryService.exportJuryExcel(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=jury_affectations.xlsx")

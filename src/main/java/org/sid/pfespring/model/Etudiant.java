@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -28,7 +30,9 @@ import lombok.ToString;
 public class Etudiant {
 
     @Id
-    @Column(name = "cne", unique = true, nullable = false, length = 20)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long id ;
+    @Column(name = "cne",nullable = false,length = 10)
     private String cne;
 
     @Column(name = "nom", nullable = false, length = 100)
@@ -44,6 +48,10 @@ public class Etudiant {
     @ManyToOne
     @JoinColumn(name="pfe_id")
     private PFE pfe;
+
+    @ManyToOne
+    @JoinColumn(name="version_id")
+    private ImportVersion version;
 
     @Override
     public String toString(){
