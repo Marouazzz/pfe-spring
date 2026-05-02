@@ -2,6 +2,8 @@ package org.sid.pfespring.controller;
 
 import java.io.IOException;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.sid.pfespring.dto.RequestJuryDTO;
 import org.sid.pfespring.dto.ResponseJuryDTO;
 import org.sid.pfespring.services.JuryService;
@@ -24,7 +26,9 @@ public class JuryController extends AbstractController<RequestJuryDTO, ResponseJ
     }
 
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterJury() throws IOException {
+    public ResponseEntity<byte[]> affecterJury( HttpServletRequest req ) throws IOException {
+        HttpSession session = req.getSession(false);
+        session.setAttribute("etape2", true);
         juryService.affecterJury();
         byte[] fichier = juryService.exportJuryExcel();
         return ResponseEntity.ok()

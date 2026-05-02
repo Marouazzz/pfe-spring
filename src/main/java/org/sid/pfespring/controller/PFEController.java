@@ -46,6 +46,7 @@ public class PFEController extends AbstractController<RequestPFEDTO, ResponsePFE
     @GetMapping("/affectations")
     public ResponseEntity<byte[]> affecterProfEtudiants(HttpServletRequest req) throws IOException {
         HttpSession session = req.getSession(false);
+        session.setAttribute("etape2", true);
         List<RequestPFEDTO> pfes =  (List<RequestPFEDTO>) session.getAttribute("pfes");
         pFEService.appliquerAffectation(pfes);
         byte [] files = pFEService.exportPFEAffectation();
