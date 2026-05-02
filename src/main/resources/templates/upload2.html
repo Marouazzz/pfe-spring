@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion PFE</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        h1   { color: #1f4e79; }
+        .btn { display: inline-block; margin: 8px 0; padding: 10px 20px;
+               background: #1f4e79; color: white; text-decoration: none;
+               border: none; cursor: pointer; border-radius: 4px; }
+        .btn:hover { background: #2e75b6; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 6px; }
+        label { font-weight: bold; }
+        input[type=file] { margin: 8px 0; }
+    </style>
+</head>
+<body>
+<h1>Gestion des Soutenances PFE</h1>
+
+<!-- ÉTAPE 1 : Upload du fichier Excel (étudiants + profs + PFEs) -->
+<div class="section">
+    <h2>Étape 1 — Import des données</h2>
+    <p>Fichier Excel contenant les feuilles : <code>etu</code>, <code>profs</code>, <code>pfe_v2</code></p>
+    <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
+        <label for="file1">Fichier Excel :</label><br>
+        <input type="file" id="file1" name="file" accept=".xlsx"><br><br>
+        <input type="submit" value="Importer" class="btn">
+    </form>
+</div>
+
+<!-- ÉTAPE 2 : Affectation encadrants -->
+<div class="section">
+    <h2>Étape 2 — Affecter les encadrants</h2>
+    <a th:href="@{/pfes/affectations}" class="btn">Affecter les encadrants</a>
+</div>
+
+<!-- ÉTAPE 3 : Affectation jurys -->
+<div class="section">
+    <h2>Étape 3 — Composer les jurys</h2>
+    <a th:href="@{/jurys/affectations}" class="btn">Affecter les jurys</a>
+</div>
+
+<!-- ÉTAPE 4 : Planification des soutenances -->
+<div class="section">
+    <h2>Étape 4 — Planifier les soutenances</h2>
+
+    <a th:href="@{/soutenances/planifier}" class="btn">Affecter les soutenances</a>
+</div>
+</body>
+</html>
