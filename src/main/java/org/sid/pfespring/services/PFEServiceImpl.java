@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -99,7 +100,17 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     etudrepo.saveAll(etudiants);
     }
 
-    
+    private boolean isRowEmpty(Row row, DataFormatter formatter) {
+    for (Cell cell : row) {
+        if (cell != null) {
+            String value = formatter.formatCellValue(cell).trim();
+            if (!value.isEmpty()) {
+                return false; 
+            }
+        }
+    }
+    return true; 
+}
     private List<RequestPFEDTO> readExcel(MultipartFile file){
         try(Workbook workbook = WorkbookFactory.create(file.getInputStream())){
             // Validation Exception will be handled later 
@@ -110,6 +121,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
             for(int i =1; i <= sheet.getLastRowNum();i++){
                 Row row = sheet.getRow(i);
                 if(row == null) continue;
+                if(isRowEmpty(row, formater)) continue;
                 String sujet = formater.formatCellValue(row.getCell(0)).trim();
                 String rawCnes = formater.formatCellValue(row.getCell(1));
                 Set<String> cnes = Arrays.stream(rawCnes.split(","))
@@ -148,6 +160,9 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
 
             return excelCnes;
         }
+
+
+
 
 @Override
 public void appliquerAffectation(Long versionId) {
@@ -198,6 +213,9 @@ public void appliquerAffectation(Long versionId) {
     encadrants.forEach(fsService::createPVFolder);
     repository.saveAll(pfes);
 }
+
+
+
   @Override
   public byte[] exportPFEAffectation(Long id) throws IOException {
     ImportVersion current_version = versionrepo.findById(id).get();
