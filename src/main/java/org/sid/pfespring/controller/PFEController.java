@@ -41,10 +41,4 @@ public class PFEController extends AbstractController<RequestPFEDTO, ResponsePFE
                 .body(files);
     }
 
-
-
-    
-
-
-    
 }

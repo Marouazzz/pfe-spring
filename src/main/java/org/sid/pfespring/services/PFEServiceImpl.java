@@ -1,4 +1,5 @@
 package org.sid.pfespring.services;
+import org.sid.pfespring.exception.BusinessException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -41,7 +43,7 @@ import jakarta.validation.Validator;
 
 
 @Service
-@Validated // We use this => In order to validate entities from the any bean rather than @Controller 
+@Validated // We use this => In order to validate entities from the any bean rather than @Controller
 public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, ResponsePFEDTO> implements PFEService {
 
     private EtudiantRepository etudrepo;
@@ -64,6 +66,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         this.validator = validator;
     }
 
+
     @Override
     public void importFromExcel(MultipartFile file,ImportVersion version) {
         List<RequestPFEDTO> pfedtos = readExcel(file);
@@ -73,13 +76,16 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         List<String> cnes = etudiantMap.keySet().stream().toList();
         Set<String> anomalies = ValidateEtudiants(pfedtos,cnes);
 
-        // Try to create your Own Exception 
-        if (!anomalies.isEmpty()) {
-        throw new RuntimeException("CNEs introuvables: " + anomalies);
-    }
-    //Convert dto to pwfe 
+        // Try to create your Own Exception
+//        if (!anomalies.isEmpty()) {
+//        throw new RuntimeException("CNEs introuvables: " + anomalies);
+//    }
+        if (!anomalies.isEmpty())
+            throw new BusinessException("Données invalides dans le fichier : CNEs introuvables : " + anomalies);
+
+    //Convert dto to pwfe
     List<PFE> pfes = new ArrayList<>();
-    
+
     for (RequestPFEDTO dto : pfedtos) {
         PFE pfe = mapper.toEntity(dto);
         pfe.setVersion(version);
@@ -91,7 +97,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         for (Etudiant e :etuds){
             e.setPfe(pfe);
         }
-        
+
         pfe.setEtudiants(etuds);
         pfes.add(pfe);
     }
@@ -99,10 +105,20 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     etudrepo.saveAll(etudiants);
     }
 
-    
+    private boolean isRowEmpty(Row row, DataFormatter formatter) {
+        for (Cell cell : row) {
+            if (cell != null) {
+                String value = formatter.formatCellValue(cell).trim();
+                if (!value.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     private List<RequestPFEDTO> readExcel(MultipartFile file){
         try(Workbook workbook = WorkbookFactory.create(file.getInputStream())){
-            // Validation Exception will be handled later 
+            // Validation Exception will be handled later
             List<RequestPFEDTO> sujetsPfe = new ArrayList<>();
             Sheet sheet = workbook.getSheet("pfe_v2");
             DataFormatter formater = new DataFormatter();
@@ -110,6 +126,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
             for(int i =1; i <= sheet.getLastRowNum();i++){
                 Row row = sheet.getRow(i);
                 if(row == null) continue;
+                if(isRowEmpty(row, formater)) continue;
                 String sujet = formater.formatCellValue(row.getCell(0)).trim();
                 String rawCnes = formater.formatCellValue(row.getCell(1));
                 Set<String> cnes = Arrays.stream(rawCnes.split(","))
@@ -117,7 +134,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                     .map(s -> s.replace("\u00A0", ""))
                     .map(String::toUpperCase)
                     .collect(Collectors.toSet());
-                String langue = formater.formatCellValue(row.getCell(2))
+                String langue = formater.formatCellValue(row.getCell(3))
                         .trim().toUpperCase()
                         .replace("É", "E").replace("È", "E").replace("Ç", "C");
                 if (langue.isBlank()) langue = null;
@@ -126,13 +143,13 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                 Set<ConstraintViolation<RequestPFEDTO>> violations = validator.validate(pfedto);
                 if(!violations.isEmpty()){
                     ConstraintViolation<RequestPFEDTO> firstViolation = violations.iterator().next();
-                    throw new RuntimeException("Fichier erroné à la ligne " + (i + 1) + " : " + firstViolation.getMessage()); 
+                    throw new RuntimeException("Fichier erroné à la ligne " + (i + 1) + " : " + firstViolation.getMessage());
                 }
                 sujetsPfe.add(pfedto);
             }
             return sujetsPfe;
         }catch(IOException e){
-            // Handle this login later 
+            // Handle this login later
             e.printStackTrace();
             return null;
         }
@@ -141,8 +158,8 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     private Set<String> ValidateEtudiants(List<RequestPFEDTO> sujetPFEs,List<String> etudiants){
             Set<String> excelCnes = sujetPFEs.stream()
             .flatMap(dto -> dto.cnes().stream())
-            // toList() : returns immutable list 
-            // Use collect() : 
+            // toList() : returns immutable list
+            // Use collect() :
             .collect(Collectors.toSet());
             excelCnes.removeAll(etudiants);
 
@@ -152,13 +169,20 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
 @Override
 public void appliquerAffectation(Long versionId) {
     ImportVersion version = versionrepo.findById(versionId).get();
-    List<PFE> pfes = ((PFERepository)repository).findByVersion(version);
+    // delete link mbin enc et pfe then delete enca
+    ((PFERepository) repository).clearEncadrantByVersion(version);
+    encadrantrepo.deleteByVersion(version);
+    // Charger apres nettoyage → Hibernate a une vue propre
+    List<PFE> pfes = ((PFERepository) repository).findByVersion(version);
+
     List<Specialite> langues = List.of(Specialite.ANGLAIS, Specialite.FRANCAIS);
     List<Prof> profs = profrepo.findByVersionAndSpecialiteNotIn(version,langues);
     // Create your Own Exception
-    if (profs.isEmpty()) {
-        throw new RuntimeException("Aucun prof disponible");
-    }
+//    if (profs.isEmpty()) {
+//        throw new RuntimeException("Aucun prof disponible");
+//    }
+    if (profs.isEmpty())
+        throw new BusinessException("Aucun professeur disponible.");
 
     // Convert prof to encadrant
     List<Encadrant> encadrants = profs.stream()
@@ -170,6 +194,7 @@ public void appliquerAffectation(Long versionId) {
                     .build()
                 )
             .collect(Collectors.toList());
+
     // Apply shuffle
     Collections.shuffle(encadrants);
     Collections.shuffle(pfes);
@@ -213,12 +238,12 @@ public void appliquerAffectation(Long versionId) {
                                     pfe -> pfe.getEtudiants().stream()
                                                              .map(Etudiant::toString)
                                                              .collect(Collectors.joining(", "))
-                                                ) 
+                                                )
                                     )
 ,(map1, map2) -> { map1.putAll(map2); return map1; }
         ));
         return ExcelGenerator.exportPFEAffectationSheet(affectations);
   }
 
-   
+
 }
