@@ -106,16 +106,18 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     }
 
     private boolean isRowEmpty(Row row, DataFormatter formatter) {
-        for (Cell cell : row) {
-            if (cell != null) {
-                String value = formatter.formatCellValue(cell).trim();
-                if (!value.isEmpty()) {
-                    return false;
-                }
+
+    for (Cell cell : row) {
+        if (cell != null) {
+            String value = formatter.formatCellValue(cell).trim();
+            if (!value.isEmpty()) {
+                return false;
             }
         }
-        return true;
     }
+    return true;
+}
+
     private List<RequestPFEDTO> readExcel(MultipartFile file){
         try(Workbook workbook = WorkbookFactory.create(file.getInputStream())){
             // Validation Exception will be handled later
@@ -165,6 +167,9 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
 
             return excelCnes;
         }
+
+
+
 
 @Override
 public void appliquerAffectation(Long versionId) {
@@ -223,6 +228,9 @@ public void appliquerAffectation(Long versionId) {
     encadrants.forEach(fsService::createPVFolder);
     repository.saveAll(pfes);
 }
+
+
+
   @Override
   public byte[] exportPFEAffectation(Long id) throws IOException {
     ImportVersion current_version = versionrepo.findById(id).get();
