@@ -5,8 +5,6 @@ import java.io.IOException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.sid.pfespring.dto.RequestProfDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.mapper.ProfMapper;
@@ -14,7 +12,6 @@ import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.transaction.Transactional;
 
@@ -33,11 +30,7 @@ public class ProfServiceImpl extends AbstractService<
     
     @Override
     @Transactional
-    public void importFromExcel(MultipartFile file,ImportVersion version) {
-
-        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-
-            Sheet sheet = workbook.getSheet("profs");
+    public void importFromExcel(Sheet sheet,ImportVersion version) {
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -71,9 +64,5 @@ public class ProfServiceImpl extends AbstractService<
                 //  Utiliser le mapper + repository via service générique
                 this.creer(request);
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
-        }
     }
 }

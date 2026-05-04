@@ -1,29 +1,92 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion PFE</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        .step { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+        .step h3 { margin: 0 0 10px 0; }
+        button { padding: 10px 20px; cursor: pointer; border-radius: 6px; border: none; font-size: 14px; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
+        .msg-warn { color: #b45309; font-size: 13px; margin-top: 8px; }
+        a { text-decoration: none; }
+    </style>
 </head>
 <body>
-<section>
-    <h1>Deposer le fichier Excel :</h1>
 
-    <div>
-        <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
+<h1>Gestion des Soutenances PFE</h1>
+    <!-- <div>
+        <form th:action="@{/home}" method="post" enctype="multipart/form-data">
             <input type="file" name="file" accept=".xlsx">
             <input type="submit" value="Save">
         </form>
-    </div>
+    </div> -->
 
-    <div>
-        <button><a th:href="@{/pfes/affectations(id=${versionId})}">Affecter Les encadrants</a></button>
-    </div>
+<!-- ÉTAPE 1 : Upload -->
+<div class="step">
+    <h3>Étape 1 — Importer le fichier Excel</h3>
+    <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx" required>
+        <button type="submit" class="btn-primary">Importer</button>
+    </form>
+</div>
 
-    <div>
-        <button><a th:href="@{/jurys/affectations(id=${versionId})}">Affecter les jurys </a></button>
-    </div>
+<!-- ÉTAPE 2 : Affecter encadrants -->
+<div class="step">
+    <h3>Étape 2 — Affecter les encadrants</h3>
 
-</section>
+    <!-- Cas 1 : pas encore uploadé -->
+    <span th:if="${session.versionId == null}">
+        <button class="btn-disabled" disabled>Affecter les encadrants</button>
+        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel (Étape 1).</p>
+    </span>
+
+    <!-- Cas 2 : uploadé → bouton actif -->
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/pfes/affectations(id=${session.versionId})}">
+            <button class="btn-success">Affecter les encadrants</button>
+        </a>
+    </span>
+</div>
+
+<!-- ÉTAPE 3 : Affecter jurys -->
+<div class="step">
+    <h3>Étape 3 — Affecter les jurys</h3>
+
+    <!-- Cas 1 : pas encore uploadé -->
+    <span th:if="${session.versionId == null}">
+        <button class="btn-disabled" disabled>Affecter les jurys</button>
+        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les encadrants.</p>
+    </span>
+
+    <!-- Cas 2 : uploadé → bouton actif -->
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/jurys/affectations(id=${session.versionId})}">
+            <button class="btn-success">Affecter les jurys et télécharger</button>
+        </a>
+    </span>
+</div>
+<!-- ÉTAPE 3 : Affecter jurys -->
+<div class="step">
+    <h3>Étape 3 — Affecter les soutenances</h3>
+
+    <!-- Cas 1 : pas encore uploadé -->
+    <span th:if="${session.versionId == null}">
+        <button class="btn-disabled" disabled>Affecter les soutenances</button>
+        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
+    </span>
+
+    <!-- Cas 2 : uploadé → bouton actif -->
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/soutenances/planifier(id=${session.versionId})}">
+            <button class="btn-success">Affecter les soutenances et télécharger</button>
+        </a>
+    </span>
+</div>
+
 </body>
 </html>

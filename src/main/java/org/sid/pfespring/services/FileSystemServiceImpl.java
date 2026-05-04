@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
-;
 
 @Service
 public class FileSystemServiceImpl implements FileSystemService{
@@ -34,7 +33,6 @@ public class FileSystemServiceImpl implements FileSystemService{
 
     @Value("${pv.template}")
     private Resource template;
-    // Resource template = new ClassPathResource("templates/pv_template.docx");
 
     @Override
     public void createPVFolder(Encadrant encadrant) {   
@@ -100,119 +98,5 @@ public class FileSystemServiceImpl implements FileSystemService{
         System.out.println(e.getMessage());
     }
     }
-
-//     public void ListFichier() {
-//     try (XWPFDocument doc = new XWPFDocument(template.getInputStream())) {
-
-//         List<XWPFParagraph> xwpfParagList = doc.getParagraphs();
-//         List<Etudiant> studentsList = new ArrayList<>(); // avoid undefined variable issue
-
-//         int i = 0;
-
-//         System.out.println("Before");
-
-//         int j = 0;
-//         for (XWPFParagraph paragraph : xwpfParagList) {
-
-
-//             for (XWPFRun run : paragraph.getRuns()) {
-//                 String text = run.getText(0);
-
-//                 if (text != null) {
-//                     System.out.println("RUN :" + j + ":" + text);
-//                     j++;
-//                 }
-//             }
-//         }
-
-//         System.out.println("After");
-//         j=0;
-//         for (XWPFParagraph paragraph : xwpfParagList) {
-
-//             for (XWPFRun run : paragraph.getRuns()) {
-
-//                 String text = run.getText(0);
-//                 if (text == null) continue;
-
-//                 // students replacement (safe index check)
-//                 if (text.contains("${etudiant_" + (i + 1) + "}")) {
-//                     if (i < studentsList.size()) {
-//                         text = text.replace("${etudiant_" + (i + 1) + "}",
-//                                 studentsList.get(i).toString());
-//                     } else {
-//                         text = text.replace("${etudiant_" + (i + 1) + "}", "Essa"+(i+1));
-//                     }
-//                     i++;
-//                 }
-
-//                 // Filiere checkboxes
-//                 for (Filiere filiere : Filiere.values()) {
-//                     String placeholder = "${" + filiere.name() + "}";
-//                     text = text.replace(
-//                             placeholder,
-//                             filiere.equals(Filiere.TDIA) ? "■" : "☐"
-//                     );
-//                 }
-
-//                 // global replacements
-//                 if (text.contains("${title}")) text = text.replace("${titre}", "tTIE");
-//                 if (text.contains("${encadrant}")) text = text.replace("${encadrant}", "Amine");
-//                 if (text.contains("${prof_1}")) text = text.replace("${prof_1}", "Es");
-//                 if (text.contains("${prof_2}")) text = text.replace("${prof_2}", "as");
-//                 System.out.println("RUN :" + j + ":" + text);
-//                     j++;
-//             }
-//         }
-
-//     } catch (IOException e) {
-//         throw new RuntimeException(e);
-//     }
-// }
-
-// public void testDoc4j(){
-//     try{
-//         List<Etudiant> studentsList = new ArrayList<>();
-//         File doc = template.getFile();
-//         WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(doc);
-//         // get only the main document.xml
-//         MainDocumentPart mainDocumentPart = wordMLPackage.getMainDocumentPart();
-//         // Reading only text elements
-//         List<Object> texts = mainDocumentPart.getJAXBNodesViaXPath("//w:t", true);
-//         int i =0;
-//         for (Object obj : texts) {
-//             Text textElement = (Text) ((JAXBElement)obj).getValue();
-//             String text = textElement.getValue();
-//             if (text.contains("${etudiant_" + (i + 1) + "}")) {
-//                 if (i < studentsList.size()) {
-//                     text = text.replace("${etudiant_" + (i + 1) + "}",
-//                     studentsList.get(i).toString());
-//                 } else {
-//                     text = text.replace("${etudiant_" + (i + 1) + "}", "Essa"+(i+1));
-//                 }
-//             i++;
-//             }
-//             Filiere selected = Filiere.TDIA;
-//             for (Filiere filiere : Filiere.values()) {
-//                 String placeholder = "${" + filiere.name() + "}";
-//                 text = text.replace(
-//                     placeholder,
-//                     filiere.equals(selected) ? "☑" : "☐"
-//                 );
-//             }
-//             text = text.replace("${titre}", "Mon sujet");
-//             text = text.replace("${encadrant}", "Amine");
-//             text = text.replace("${prof_1}", "Prof A");
-//             text = text.replace("${prof_2}", "Prof B");
-//             textElement.setValue(text);
-//         }
-//         wordMLPackage.save(new File("output.docx"));
-//     }catch(Docx4JException | IOException | JAXBException e){
-
-//     }
-// }
-    // public static void main(String[] args) {
-    //     FileSystemServiceImpl service = new FileSystemServiceImpl();
-    //     service.testDoc4j();
-    // }
 
 }

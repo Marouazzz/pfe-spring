@@ -5,8 +5,6 @@ import java.io.IOException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.sid.pfespring.dto.RequestEtudiantDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.sid.pfespring.mapper.EtudiantMapper;
@@ -15,7 +13,7 @@ import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.repository.EtudiantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @Service
 public class EtudiantServiceImpl extends AbstractService<
@@ -30,12 +28,8 @@ public class EtudiantServiceImpl extends AbstractService<
 
     @Override
     @Transactional
-    public  void importFromExcel(MultipartFile file,ImportVersion version) {
-        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-
-            Sheet sheet = workbook.getSheet("etu");
+    public  void importFromExcel(Sheet sheet ,ImportVersion version) {
             DataFormatter formatter = new DataFormatter();
-
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 Row row = sheet.getRow(i);
@@ -69,10 +63,6 @@ public class EtudiantServiceImpl extends AbstractService<
                 // Utiliser la logique générique
                 ResponseEtudiantDTO saved = this.creer(request);
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
-        }
     }
 
     

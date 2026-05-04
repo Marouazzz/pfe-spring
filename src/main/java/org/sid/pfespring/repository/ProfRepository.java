@@ -13,5 +13,5 @@ import org.sid.pfespring.model.ImportVersion;
 public interface ProfRepository extends JpaRepository<Prof,Long> {
     // Utilisation de convention de nommage 
     public List<Prof> findByVersionAndSpecialiteNotIn(ImportVersion version,List<Specialite> specialites);
-    List<Prof> findByVersionAndSpecialite(ImportVersion version,Specialite specialite);
+    public List<Prof> findByVersionAndSpecialite(ImportVersion version,Specialite specialite);
 }

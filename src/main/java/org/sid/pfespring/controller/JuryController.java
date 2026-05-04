@@ -1,5 +1,6 @@
 package org.sid.pfespring.controller;
 
+
 import java.io.IOException;
 
 import org.sid.pfespring.dto.RequestJuryDTO;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/jurys")
 public class JuryController extends AbstractController<RequestJuryDTO, ResponseJuryDTO> {
@@ -25,8 +28,9 @@ public class JuryController extends AbstractController<RequestJuryDTO, ResponseJ
     }
 
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterJury(@RequestParam("id") Long id) throws IOException {
+    public ResponseEntity<byte[]> affecterJury(@RequestParam("id") Long id,HttpSession session) throws IOException {
         juryService.affecterJury(id);
+        session.setAttribute("etape3",true);
         byte[] fichier = juryService.exportJuryExcel(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
