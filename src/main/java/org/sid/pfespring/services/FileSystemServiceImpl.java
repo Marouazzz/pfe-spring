@@ -84,7 +84,7 @@ public class FileSystemServiceImpl implements FileSystemService{
             }
             text = text.replace("${titre}", jury.getPfe().getSujet());
             text = text.replace("${encadrant}", encadrant.getNom() + "\u00A0" + encadrant.getPrenom());
-            text = text.replace("${prof_1}", prof1.getNom() + "\u00A0" + prof2.getPrenom());
+            text = text.replace("${prof_1}", prof1.getNom() + "\u00A0" + prof1.getPrenom());
             text = text.replace("${prof_2}", prof2.getNom() + "\u00A0" + prof2.getPrenom());
             textElement.setValue(text);
         }
