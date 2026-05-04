@@ -30,7 +30,7 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
         if (dto.langue() != null && !dto.langue().isBlank()) {
             try { langue = Langue.valueOf(dto.langue()); } catch (Exception ignored) {}
         }
-        return PFE.builder().sujet(dto.sujet()).description(dto.description()).langue(langue).build();
+        return PFE.builder().sujet(dto.sujet()).description(dto.description()).filiere(dto.filiere()).langue(langue).build();
     }
 
     @Override

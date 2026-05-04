@@ -42,6 +42,7 @@ public class JuryServiceImpl
     private final PFERepository  pfeRepository;
     private final ProfRepository profRepository;
     private final ImportVersionRepository versrepository;
+    private final FileSystemService fsService;
 
     private static final int ROLES_LIBRES_PAR_JURY = 2;
 
@@ -49,11 +50,13 @@ public class JuryServiceImpl
                            JuryMapper juryMapper,
                            PFERepository pfeRepository,
                            ProfRepository profRepository,
-                           ImportVersionRepository versRepository) {
+                           ImportVersionRepository versRepository,
+                           FileSystemService fsService) {
         super(juryRepository, juryMapper);
         this.pfeRepository  = pfeRepository;
         this.profRepository = profRepository;
         this.versrepository = versRepository;
+        this.fsService = fsService;
     }
 
 
@@ -81,7 +84,7 @@ public class JuryServiceImpl
         );
 
         Map<Long, Integer> chargeParProf = new HashMap<>();
-        profsTech.forEach(p     -> chargeParProf.put(p.getId(), 0));
+        profsTech.forEach(p  -> chargeParProf.put(p.getId(), 0));
         profsAnglais.forEach(p  -> chargeParProf.put(p.getId(), 0));
         profsFrancais.forEach(p -> chargeParProf.put(p.getId(), 0));
 
@@ -160,6 +163,7 @@ public class JuryServiceImpl
         }
 
         List<Jury> saved = repository.saveAll(jurysACreer);
+        jurysACreer.forEach(fsService::generatePVFile);
         return mapper.toResponseList(saved);
     }
 

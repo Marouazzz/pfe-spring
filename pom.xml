@@ -106,6 +106,30 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/org.docx4j/docx4j-core -->
+<dependency>
+    <groupId>org.docx4j</groupId>
+    <artifactId>docx4j-core</artifactId>
+    <version>11.5.12</version>
+    <scope>compile</scope>
+</dependency>
+        <dependency>
+    <groupId>org.docx4j</groupId>
+    <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+    <version>11.5.12</version>
+</dependency>
+<dependency>
+    <groupId>org.docx4j</groupId>
+    <artifactId>docx4j-export-fo</artifactId>
+    <version>11.5.12</version>
+</dependency>
+    <!-- To convert word to PDF -->
+     <dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>fop</artifactId>
+    <version>2.9</version>
+</dependency>
     </dependencies>
 
     <build>

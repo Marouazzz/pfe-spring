@@ -21,6 +21,7 @@ import org.sid.pfespring.dto.ResponsePFEDTO;
 import org.sid.pfespring.mapper.PFEMapper;
 import org.sid.pfespring.model.Encadrant;
 import org.sid.pfespring.model.Etudiant;
+import org.sid.pfespring.model.Filiere;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
@@ -123,7 +124,8 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                 if(row == null) continue;
                 if(isRowEmpty(row, formater)) continue;
                 String sujet = formater.formatCellValue(row.getCell(0)).trim();
-                String rawCnes = formater.formatCellValue(row.getCell(1));
+                String rawCnes = formater.formatCellValue(row.getCell(1)).trim();
+                String rawFiliere = formater.formatCellValue(row.getCell(2)).trim();
                 Set<String> cnes = Arrays.stream(rawCnes.split(","))
                     .map(String::trim)
                     .map(s -> s.replace("\u00A0", ""))
@@ -133,7 +135,8 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                         .trim().toUpperCase()
                         .replace("É", "E").replace("È", "E").replace("Ç", "C");
                 if (langue.isBlank()) langue = null;
-                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet, null,langue);
+                Filiere filiere = Filiere.valueOf(rawFiliere);
+                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet,null,filiere,langue);
 
                 Set<ConstraintViolation<RequestPFEDTO>> violations = validator.validate(pfedto);
                 if(!violations.isEmpty()){

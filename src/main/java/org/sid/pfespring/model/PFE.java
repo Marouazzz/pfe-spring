@@ -66,4 +66,8 @@ public class PFE {
     @ManyToOne
     @JoinColumn(name="version_id")
     private ImportVersion version;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "filiere", nullable = false)
+    private Filiere filiere;
 }

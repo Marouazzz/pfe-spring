@@ -2,4 +2,7 @@ package org.sid.pfespring.dto;
 
 import org.sid.pfespring.model.ImportVersion;
 
-public record RequestProfDTO(String nom,String prenom,String specialite,ImportVersion version) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record RequestProfDTO(@NotBlank String nom,@NotBlank String prenom,@NotBlank String specialite,@NotNull ImportVersion version) {}
