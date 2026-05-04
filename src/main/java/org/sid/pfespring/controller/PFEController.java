@@ -2,21 +2,19 @@ package org.sid.pfespring.controller;
 
 
 
-import org.sid.pfespring.dto.RequestPFEDTO;
-import org.sid.pfespring.dto.ResponsePFEDTO;
-
-import org.sid.pfespring.services.PFEService;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import java.io.IOException;
 
+import org.sid.pfespring.dto.RequestPFEDTO;
+import org.sid.pfespring.dto.ResponsePFEDTO;
+import org.sid.pfespring.services.PFEService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 // @RestController
 @Controller
@@ -31,8 +29,9 @@ public class PFEController extends AbstractController<RequestPFEDTO, ResponsePFE
     }
 
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterProfEtudiants(@RequestParam("id") Long id) throws IOException {
+    public ResponseEntity<byte[]> affecterProfEtudiants(@RequestParam("id") Long id,HttpSession session) throws IOException {
         pFEService.appliquerAffectation(id);
+        session.setAttribute("etape2", true);
         byte [] files = pFEService.exportPFEAffectation(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,

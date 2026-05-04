@@ -19,6 +19,12 @@
 <body>
 
 <h1>Gestion des Soutenances PFE</h1>
+    <!-- <div>
+        <form th:action="@{/home}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".xlsx">
+            <input type="submit" value="Save">
+        </form>
+    </div> -->
 
 <!-- ÉTAPE 1 : Upload -->
 <div class="step">
@@ -34,14 +40,14 @@
     <h3>Étape 2 — Affecter les encadrants</h3>
 
     <!-- Cas 1 : pas encore uploadé -->
-    <span th:if="${versionId == null}">
+    <span th:if="${session.versionId == null}">
         <button class="btn-disabled" disabled>Affecter les encadrants</button>
         <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel (Étape 1).</p>
     </span>
 
     <!-- Cas 2 : uploadé → bouton actif -->
-    <span th:if="${versionId != null}">
-        <a th:href="@{/pfes/affectations(id=${versionId})}">
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/pfes/affectations(id=${session.versionId})}">
             <button class="btn-success">Affecter les encadrants</button>
         </a>
     </span>
@@ -52,15 +58,32 @@
     <h3>Étape 3 — Affecter les jurys</h3>
 
     <!-- Cas 1 : pas encore uploadé -->
-    <span th:if="${versionId == null}">
+    <span th:if="${session.versionId == null}">
         <button class="btn-disabled" disabled>Affecter les jurys</button>
         <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les encadrants.</p>
     </span>
 
     <!-- Cas 2 : uploadé → bouton actif -->
-    <span th:if="${versionId != null}">
-        <a th:href="@{/jurys/affectations(id=${versionId})}">
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/jurys/affectations(id=${session.versionId})}">
             <button class="btn-success">Affecter les jurys et télécharger</button>
+        </a>
+    </span>
+</div>
+<!-- ÉTAPE 3 : Affecter jurys -->
+<div class="step">
+    <h3>Étape 3 — Affecter les soutenances</h3>
+
+    <!-- Cas 1 : pas encore uploadé -->
+    <span th:if="${session.versionId == null}">
+        <button class="btn-disabled" disabled>Affecter les soutenances</button>
+        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
+    </span>
+
+    <!-- Cas 2 : uploadé → bouton actif -->
+    <span th:if="${session.versionId != null}">
+        <a th:href="@{/soutenances/planifier(id=${session.versionId})}">
+            <button class="btn-success">Affecter les soutenances et télécharger</button>
         </a>
     </span>
 </div>

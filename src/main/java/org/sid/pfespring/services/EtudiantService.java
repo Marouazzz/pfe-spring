@@ -2,10 +2,10 @@ package org.sid.pfespring.services;
 
 import org.sid.pfespring.dto.RequestEtudiantDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
-import org.springframework.web.multipart.MultipartFile;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.model.ImportVersion;
 public interface EtudiantService extends GenericService<RequestEtudiantDTO, ResponseEtudiantDTO>{
 
-  void importFromExcel(MultipartFile file,ImportVersion version);
+  void importFromExcel(Sheet sheet,ImportVersion version);
 
 }

@@ -1,5 +1,9 @@
 package org.sid.pfespring.model;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,45 +14,42 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "jurys")
-@Getter
-@Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "soutenances")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
-public class Jury {
+public class Soutenance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "pfe_id", nullable = false, unique = true)
     private PFE pfe;
 
-    // encadrant.getProf() — copied ici pour lecture directe
-    @ManyToOne
-    @JoinColumn(name = "encadrant_id", nullable = false)
-    private Prof encadrant;
+    @OneToOne
+    @JoinColumn(name = "jury_id", nullable = false, unique = true)
+    private Jury jury;
 
-    // prof technique le moins charge, ≠ encadrant
     @ManyToOne
-    @JoinColumn(name = "prof1_id", nullable = false)
-    private Prof prof1;
+    @JoinColumn(name = "salle_id", nullable = false)
+    private Salle salle;
 
-    // prof de langue si dispo, sinon prof technique (fallback)
-    @ManyToOne
-    @JoinColumn(name = "prof2_id", nullable = true)
-    private Prof prof2;
-    
+    @Column(nullable = false)
+    private LocalDate dateSoutenance;
+
+    @Column(nullable = false)
+    private LocalTime heureDebut;
+
+    @Column(nullable = false)
+    private LocalTime heureFin;
+
     @ManyToOne
     @JoinColumn(name="version_id")
     private ImportVersion version;

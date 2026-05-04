@@ -15,8 +15,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.sid.pfespring.dto.RequestPFEDTO;
 import org.sid.pfespring.dto.ResponsePFEDTO;
 import org.sid.pfespring.mapper.PFEMapper;
@@ -35,7 +33,6 @@ import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.utils.ExcelGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -68,8 +65,8 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
 
 
     @Override
-    public void importFromExcel(MultipartFile file,ImportVersion version) {
-        List<RequestPFEDTO> pfedtos = readExcel(file);
+    public void importFromExcel(Sheet sheet,ImportVersion version) {
+        List<RequestPFEDTO> pfedtos = readExcel(sheet);
         List<Etudiant> etudiants = etudrepo.findByVersion(version);
         Map<String, Etudiant> etudiantMap = etudiants.stream()
         .collect(Collectors.toMap(Etudiant::getCne, e -> e));
@@ -106,7 +103,6 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     }
 
     private boolean isRowEmpty(Row row, DataFormatter formatter) {
-
     for (Cell cell : row) {
         if (cell != null) {
             String value = formatter.formatCellValue(cell).trim();
@@ -118,11 +114,9 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     return true;
 }
 
-    private List<RequestPFEDTO> readExcel(MultipartFile file){
-        try(Workbook workbook = WorkbookFactory.create(file.getInputStream())){
+    private List<RequestPFEDTO> readExcel(Sheet sheet){
             // Validation Exception will be handled later
             List<RequestPFEDTO> sujetsPfe = new ArrayList<>();
-            Sheet sheet = workbook.getSheet("pfe_v2");
             DataFormatter formater = new DataFormatter();
             // The last row is uncluded
             for(int i =1; i <= sheet.getLastRowNum();i++){
@@ -136,9 +130,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                     .map(s -> s.replace("\u00A0", ""))
                     .map(String::toUpperCase)
                     .collect(Collectors.toSet());
-                String langue = formater.formatCellValue(row.getCell(3))
-                        .trim().toUpperCase()
-                        .replace("É", "E").replace("È", "E").replace("Ç", "C");
+                String langue = formater.formatCellValue(row.getCell(3)).trim();
                 if (langue.isBlank()) langue = null;
                 RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet, null,langue);
 
@@ -150,11 +142,6 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                 sujetsPfe.add(pfedto);
             }
             return sujetsPfe;
-        }catch(IOException e){
-            // Handle this login later
-            e.printStackTrace();
-            return null;
-        }
     }
 
     private Set<String> ValidateEtudiants(List<RequestPFEDTO> sujetPFEs,List<String> etudiants){
@@ -164,7 +151,6 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
             // Use collect() :
             .collect(Collectors.toSet());
             excelCnes.removeAll(etudiants);
-
             return excelCnes;
         }
 
