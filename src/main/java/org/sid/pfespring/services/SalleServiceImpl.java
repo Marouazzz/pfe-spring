@@ -20,8 +20,6 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.transaction.annotation.Propagation;
-
 @Service
 public class SalleServiceImpl
         extends AbstractService<Salle, RequestSalleDTO, ResponseSalleDTO>
@@ -578,7 +576,7 @@ public class SalleServiceImpl
     // ══════════════════════════════════════════════════════════════
     //  IMPORT EXCEL — SALLES
     // ══════════════════════════════════════════════════════════════
-    @Transactional(propagation=Propagation.MANDATORY)
+    @Transactional
     @Override
     public List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version)  {
         if (sheet == null) throw new IllegalArgumentException("Feuille 'salles' introuvable.");

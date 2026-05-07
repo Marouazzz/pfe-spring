@@ -17,7 +17,6 @@ import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.validation.ConstraintViolation;
@@ -43,7 +42,7 @@ public class ProfServiceImpl extends AbstractService<
 
     
     @Override
-    @Transactional(propagation=Propagation.MANDATORY)
+    @Transactional
     public void importFromExcel(Sheet sheet,ImportVersion version) {
             DataFormatter formatter = new DataFormatter();
             List <RequestProfDTO> dtos = new ArrayList<>();

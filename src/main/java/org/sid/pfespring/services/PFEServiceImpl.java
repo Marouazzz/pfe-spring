@@ -34,7 +34,6 @@ import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.utils.ExcelGenerator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -67,7 +66,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         this.validator = validator;
     }
 
-    @Transactional(propagation=Propagation.MANDATORY)
+    @Transactional
     @Override
     public void importFromExcel(Sheet sheet,ImportVersion version) {
         List<RequestPFEDTO> pfedtos = readExcel(sheet);
@@ -222,7 +221,7 @@ public void appliquerAffectation(Long versionId) {
 
 
 
-  @Transactional(propagation=Propagation.MANDATORY)
+  @Transactional
   @Override
   public byte[] exportPFEAffectation(Long id) throws IOException {
     ImportVersion current_version = versionrepo.findById(id).get();

@@ -90,7 +90,7 @@ public class FileSystemServiceImpl implements FileSystemService{
         }
         // Setting the correspending pv path 
         String PVFolder =encadrant.getNom()+"_"+encadrant.getPrenom()+"_v"+encadrant.getVersion().getId();
-        String fileName = "PFE_"+jury.getPfe().getId()+".docx";
+        String fileName = "PFE_"+jury.getId()+".docx";
         Path path = Paths.get(rootFolder,PVFolder,fileName);
         wordMLPackage.save(path.toFile());
         
