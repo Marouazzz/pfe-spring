@@ -1,6 +1,4 @@
 package org.sid.pfespring.services;
-import org.sid.pfespring.exception.BusinessException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +15,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.RequestPFEDTO;
 import org.sid.pfespring.dto.ResponsePFEDTO;
+import org.sid.pfespring.exception.BusinessException;
+import org.sid.pfespring.exception.EtudiantNotFoundException;
+import org.sid.pfespring.exception.PFEImportValidationException;
 import org.sid.pfespring.mapper.PFEMapper;
 import org.sid.pfespring.model.Encadrant;
 import org.sid.pfespring.model.Etudiant;
@@ -33,6 +34,8 @@ import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.utils.ExcelGenerator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.ConstraintViolation;
@@ -64,7 +67,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         this.validator = validator;
     }
 
-
+    @Transactional(propagation=Propagation.MANDATORY)
     @Override
     public void importFromExcel(Sheet sheet,ImportVersion version) {
         List<RequestPFEDTO> pfedtos = readExcel(sheet);
@@ -74,12 +77,8 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         List<String> cnes = etudiantMap.keySet().stream().toList();
         Set<String> anomalies = ValidateEtudiants(pfedtos,cnes);
 
-        // Try to create your Own Exception
-//        if (!anomalies.isEmpty()) {
-//        throw new RuntimeException("CNEs introuvables: " + anomalies);
-//    }
         if (!anomalies.isEmpty())
-            throw new BusinessException("Données invalides dans le fichier : CNEs introuvables : " + anomalies);
+            throw new EtudiantNotFoundException("Les etudiants ayant les CNE's suivants sont introuvables : " + anomalies);
 
     //Convert dto to pwfe
     List<PFE> pfes = new ArrayList<>();
@@ -119,6 +118,7 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
             // Validation Exception will be handled later
             List<RequestPFEDTO> sujetsPfe = new ArrayList<>();
             DataFormatter formater = new DataFormatter();
+            List<String> errors = new ArrayList();
             // The last row is uncluded
             for(int i =1; i <= sheet.getLastRowNum();i++){
                 Row row = sheet.getRow(i);
@@ -135,14 +135,19 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                 String langue = formater.formatCellValue(row.getCell(3)).trim();
                 if (langue.isBlank()) langue = null;
                 Filiere filiere = Filiere.valueOf(rawFiliere);
-                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet,null,filiere,langue);
+                RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet,filiere,langue);
 
                 Set<ConstraintViolation<RequestPFEDTO>> violations = validator.validate(pfedto);
-                if(!violations.isEmpty()){
-                    ConstraintViolation<RequestPFEDTO> firstViolation = violations.iterator().next();
-                    throw new RuntimeException("Fichier erroné à la ligne " + (i + 1) + " : " + firstViolation.getMessage());
+                if (!violations.isEmpty()) {
+                        String rowErrors = violations.stream()
+                        .map(v -> v.getPropertyPath() + " : " + v.getMessage())
+                        .collect(Collectors.joining(", "));
+                        errors.add("Ligne " + (i + 1) + " -> " + rowErrors);
                 }
                 sujetsPfe.add(pfedto);
+            }
+            if(!errors.isEmpty()){
+                throw new PFEImportValidationException(errors);
             }
             return sujetsPfe;
     }
@@ -171,10 +176,7 @@ public void appliquerAffectation(Long versionId) {
 
     List<Specialite> langues = List.of(Specialite.ANGLAIS, Specialite.FRANCAIS);
     List<Prof> profs = profrepo.findByVersionAndSpecialiteNotIn(version,langues);
-    // Create your Own Exception
-//    if (profs.isEmpty()) {
-//        throw new RuntimeException("Aucun prof disponible");
-//    }
+
     if (profs.isEmpty())
         throw new BusinessException("Aucun professeur disponible.");
 
@@ -220,6 +222,7 @@ public void appliquerAffectation(Long versionId) {
 
 
 
+  @Transactional(propagation=Propagation.MANDATORY)
   @Override
   public byte[] exportPFEAffectation(Long id) throws IOException {
     ImportVersion current_version = versionrepo.findById(id).get();

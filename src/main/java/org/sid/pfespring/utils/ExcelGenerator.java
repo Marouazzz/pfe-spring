@@ -2,7 +2,6 @@ package org.sid.pfespring.utils;
 
 
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
@@ -47,8 +46,7 @@ public class ExcelGenerator {
             workbook.dispose();
             return out.toByteArray();
         }catch(IOException ioe){
-            System.out.println(ioe.getMessage());
-            return null;
+            throw new RuntimeException("Erreur lors de la creation du fichier affectations_pfe");
         }
     } 
 

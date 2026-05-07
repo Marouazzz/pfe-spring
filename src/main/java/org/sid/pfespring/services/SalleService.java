@@ -14,13 +14,13 @@ public interface SalleService extends GenericService<RequestSalleDTO, ResponseSa
      * Importe les salles depuis la feuille "salles" du fichier Excel.
      * Appelé lors de l'upload initial — idempotent (ignore les doublons).
      */
-    List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version) throws Exception;
+    List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version) ;
 
     /**
      * Lit la date de début dans la feuille "jours_soutenances".
      * Une seule date suffit — l'algo calcule les jours ouvrés suivants.
      */
-    LocalDate importDateDebut(Sheet sheet) throws Exception;
+    LocalDate importDateDebut(Sheet sheet);
 
     /**
      * Lance la planification à partir d'une date de début.

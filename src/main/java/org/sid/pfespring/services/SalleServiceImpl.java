@@ -20,6 +20,8 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Propagation;
+
 @Service
 public class SalleServiceImpl
         extends AbstractService<Salle, RequestSalleDTO, ResponseSalleDTO>
@@ -576,8 +578,9 @@ public class SalleServiceImpl
     // ══════════════════════════════════════════════════════════════
     //  IMPORT EXCEL — SALLES
     // ══════════════════════════════════════════════════════════════
+    @Transactional(propagation=Propagation.MANDATORY)
     @Override
-    public List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version) throws Exception {
+    public List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version)  {
         if (sheet == null) throw new IllegalArgumentException("Feuille 'salles' introuvable.");
         List<Salle> nouvelles = new ArrayList<>();
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -599,7 +602,7 @@ public class SalleServiceImpl
     //  IMPORT DATE DE DÉBUT
     // ══════════════════════════════════════════════════════════════
     @Override
-    public LocalDate importDateDebut(Sheet sheet) throws Exception {
+    public LocalDate importDateDebut(Sheet sheet)  {
         if (sheet == null)
             throw new IllegalArgumentException("Feuille 'jours_soutenances' introuvable.");
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {

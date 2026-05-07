@@ -1,35 +1,51 @@
 package org.sid.pfespring.services;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.RequestEtudiantDTO;
 import org.sid.pfespring.dto.ResponseEtudiantDTO;
+import org.sid.pfespring.exception.EtudiantImportValidationException;
 import org.sid.pfespring.mapper.EtudiantMapper;
 import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.repository.EtudiantRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
 
 @Service
+@Validated
 public class EtudiantServiceImpl extends AbstractService<
         Etudiant,
         RequestEtudiantDTO,
         ResponseEtudiantDTO> implements EtudiantService {
 
+        private Validator validator;
+
     public EtudiantServiceImpl(EtudiantRepository repository,
-                               EtudiantMapper mapper) {
+                               EtudiantMapper mapper,Validator validator) {
         super(repository, mapper);
+        this.validator = validator;
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.MANDATORY)
     public  void importFromExcel(Sheet sheet ,ImportVersion version) {
             DataFormatter formatter = new DataFormatter();
+            List<RequestEtudiantDTO> dtos= new ArrayList<>();
+            List<String> errors = new ArrayList<>();
+
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 Row row = sheet.getRow(i);
@@ -59,10 +75,22 @@ public class EtudiantServiceImpl extends AbstractService<
                         filiere,
                         version
                 );
-
-                // Utiliser la logique générique
-                ResponseEtudiantDTO saved = this.creer(request);
+                Set<ConstraintViolation<RequestEtudiantDTO>> violations = validator.validate(request);
+                if (!violations.isEmpty()) {
+                        String rowErrors = violations.stream()
+                        .map(v -> v.getPropertyPath() + " : " + v.getMessage())
+                        .collect(Collectors.joining(", "));
+                        errors.add("Ligne " + (i + 1) + " -> " + rowErrors);
+                }
+                dtos.add(request);
             }
+
+            if(!errors.isEmpty()){
+                throw new EtudiantImportValidationException(errors);
+            }
+
+            List<Etudiant> etudiants = dtos.stream().map(mapper::toEntity).toList();
+            this.repository.saveAll(etudiants);
     }
 
     

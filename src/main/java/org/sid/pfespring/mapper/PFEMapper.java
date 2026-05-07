@@ -30,7 +30,7 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
         if (dto.langue() != null && !dto.langue().isBlank()) {
             try { langue = Langue.valueOf(dto.langue()); } catch (Exception ignored) {}
         }
-        return PFE.builder().sujet(dto.sujet()).description(dto.description()).filiere(dto.filiere()).langue(langue).build();
+        return PFE.builder().sujet(dto.sujet()).filiere(dto.filiere()).langue(langue).build();
     }
 
     @Override
@@ -43,9 +43,9 @@ public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO>
         if(entity.getEncadrant() != null){
             ResponseProfDTO prof =  this.pm.toResponse(entity.getEncadrant().getProf());
             // This line is wrong logically, fix it later
-            return new ResponsePFEDTO(entity.getSujet(),entity.getDescription(),entity.getStatus(),etudiants, prof);
+            return new ResponsePFEDTO(entity.getSujet(),entity.getStatus(),etudiants, prof);
         }else{
-            return new ResponsePFEDTO(entity.getSujet(), entity.getDescription(), entity.getStatus(), etudiants, null);
+            return new ResponsePFEDTO(entity.getSujet(), entity.getStatus(), etudiants, null);
         }
     }
 
