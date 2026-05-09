@@ -2,6 +2,7 @@ package org.sid.pfespring.controller;
 
 
 import java.io.IOException;
+import java.time.Year;
 
 import org.sid.pfespring.dto.RequestJuryDTO;
 import org.sid.pfespring.dto.ResponseJuryDTO;
@@ -27,14 +28,33 @@ public class JuryController extends AbstractController<RequestJuryDTO, ResponseJ
         this.juryService = juryService;
     }
 
+//    @GetMapping("/affectations")
+//    public ResponseEntity<byte[]> affecterJury(@RequestParam("id") Long id,HttpSession session) throws IOException {
+//        juryService.affecterJury(id);
+//        session.setAttribute("etape3",true);
+//        byte[] fichier = juryService.exportJuryExcel(id);
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.CONTENT_DISPOSITION,
+//                        "attachment; filename=jury_affectations.xlsx")
+//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .body(fichier);
+//    }
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterJury(@RequestParam("id") Long id,HttpSession session) throws IOException {
+    public Object affecterJury(@RequestParam("id") Long id, HttpSession session) throws IOException {
+        int annee = Year.now().getValue();
+        if (session.getAttribute("etape1") == null ||
+                session.getAttribute("etape2") == null) {
+            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes avant d'affecter les jurys.";
+        }
+
         juryService.affecterJury(id);
-        session.setAttribute("etape3",true);
+        session.setAttribute("etape3", true);
+        session.setAttribute("versionId", id);
+        session.removeAttribute("etape4");
         byte[] fichier = juryService.exportJuryExcel(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=jury_affectations.xlsx")
+                        "attachment; filename=jury_affectations_" + annee + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(fichier);
     }

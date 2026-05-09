@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.RequestSalleDTO;
 import org.sid.pfespring.dto.ResponseSalleDTO;
 import org.sid.pfespring.dto.ResponseSoutenanceDTO;
+import org.sid.pfespring.model.Soutenance;
 
 public interface SalleService extends GenericService<RequestSalleDTO, ResponseSalleDTO> {
 
@@ -14,7 +15,7 @@ public interface SalleService extends GenericService<RequestSalleDTO, ResponseSa
      * Importe les salles depuis la feuille "salles" du fichier Excel.
      * Appelé lors de l'upload initial — idempotent (ignore les doublons).
      */
-    List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version) ;
+    List<ResponseSalleDTO> importFromExcel(Sheet sheet, ImportVersion version);
 
     /**
      * Lit la date de début dans la feuille "jours_soutenances".
@@ -27,8 +28,12 @@ public interface SalleService extends GenericService<RequestSalleDTO, ResponseSa
      * L'algo génère automatiquement les jours ouvrés nécessaires
      * pour caser 75 soutenances (pas de weekend).
      */
-    List<ResponseSoutenanceDTO> affecterSalles(LocalDate dateDebut,Long versionId);
+    List<ResponseSoutenanceDTO> affecterSalles(LocalDate dateDebut, Long versionId);
 
-    /** Génère le fichier Excel du planning trié. */
+    /**
+     * Génère le fichier Excel du planning trié.
+     */
     byte[] exportPlanningExcel(Long versionId) throws Exception;
+
+    List<String> detecterAnomalies(List<Soutenance> soutenances);
 }

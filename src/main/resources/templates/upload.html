@@ -3,89 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion PFE</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-        .step { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
-        .step h3 { margin: 0 0 10px 0; }
-        button { padding: 10px 20px; cursor: pointer; border-radius: 6px; border: none; font-size: 14px; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-success { background: #16a34a; color: white; }
-        .btn-disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
-        .msg-warn { color: #b45309; font-size: 13px; margin-top: 8px; }
-        a { text-decoration: none; }
-    </style>
+    <title>Gestion PFE — Workflow</title>
+    <link rel="stylesheet" th:href="@{/css/upload.css}">
 </head>
 <body>
 
-<h1>Gestion des Soutenances PFE</h1>
-    <!-- <div>
-        <form th:action="@{/home}" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".xlsx">
-            <input type="submit" value="Save">
-        </form>
-    </div> -->
+<nav>
+    <span class="brand">Gestion PFE</span>
+    <div>
+        <a th:href="@{/home}" class="active">Orchestration de soutnances</a>
+        <a th:href="@{/dashboard}">Tableau de bord</a>
+    </div>
+</nav>
 
-<!-- ÉTAPE 1 : Upload -->
-<div class="step">
-    <h3>Étape 1 — Importer le fichier Excel</h3>
-    <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".xlsx" required>
-        <button type="submit" class="btn-primary">Importer</button>
-    </form>
-</div>
+<div class="page">
+    <div class="container">
+        <h1 class="page-title">Gestion des Soutenances PFE</h1>
+        <p class="page-sub">Suivez les étapes dans l'ordre pour une planification réussie.</p>
 
-<!-- ÉTAPE 2 : Affecter encadrants -->
-<div class="step">
-    <h3>Étape 2 — Affecter les encadrants</h3>
+        <!-- ETAPE 1 : Upload -->
+        <div class="step">
+            <h3>Étape 1 — Importer le fichier Excel</h3>
+            <form th:action="@{/home/upload}" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="file" accept=".xlsx" required id="file-input">
+                <button type="submit" class="btn-primary">Importer</button>
+            </form>
+            <p th:if="${session.versionId != null}" style="font-size:12px; color:#15803d; margin-top:10px;"></p>
+        </div>
 
-    <!-- Cas 1 : pas encore uploadé -->
-    <span th:if="${session.versionId == null}">
-        <button class="btn-disabled" disabled>Affecter les encadrants</button>
-        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel (Étape 1).</p>
-    </span>
+        <!-- ETAPE 2 : Affecter encadrants -->
+        <div class="step">
+            <h3>Étape 2 — Affecter les encadrants</h3>
+            <div class="step-content">
+        <span th:if="${session.versionId == null}" class="step-control">
+            <button class="btn-disabled" disabled>Affecter les encadrants</button>
+            <p class="msg-warn">Veuillez d'abord importer un fichier Excel (Étape 1).</p>
+        </span>
+                <span th:if="${session.versionId != null}">
+            <a th:href="@{/pfes/affectations(id=${session.versionId})}" class="btn-link">
+                <button class="btn-success">Affecter les encadrants</button>
+            </a>
+        </span>
+            </div>
+        </div>
 
-    <!-- Cas 2 : uploadé → bouton actif -->
-    <span th:if="${session.versionId != null}">
-        <a th:href="@{/pfes/affectations(id=${session.versionId})}">
-            <button class="btn-success">Affecter les encadrants</button>
-        </a>
-    </span>
-</div>
+        <!-- ETAPE 3 : Affecter jurys -->
+        <div class="step">
+            <h3>Étape 3 — Affecter les jurys</h3>
+            <div class="step-content">
+        <span th:if="${session.versionId == null}" class="step-control">
+            <button class="btn-disabled" disabled>Affecter les jurys</button>
+            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les encadrants.</p>
+        </span>
+                <span th:if="${session.versionId != null}">
+            <a th:href="@{/jurys/affectations(id=${session.versionId})}" class="btn-link">
+                <button class="btn-success">Affecter les jurys et télécharger</button>
+            </a>
+        </span>
+            </div>
+        </div>
 
-<!-- ÉTAPE 3 : Affecter jurys -->
-<div class="step">
-    <h3>Étape 3 — Affecter les jurys</h3>
+        <!-- ETAPE 4 : Planifier soutenances -->
+        <div class="step">
+            <h3>Étape 4 — Planifier les soutenances</h3>
+            <div class="step-content">
+        <span th:if="${session.versionId == null}" class="step-control">
+            <button class="btn-disabled" disabled>Planifier les soutenances</button>
+            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
+        </span>
+                <span th:if="${session.versionId != null}">
+            <a th:href="@{/soutenances/planifier(id=${session.versionId})}" class="btn-link">
+                <button class="btn-success">Planifier les soutenances et télécharger</button>
+            </a>
+        </span>
+            </div>
+        </div>
 
-    <!-- Cas 1 : pas encore uploadé -->
-    <span th:if="${session.versionId == null}">
-        <button class="btn-disabled" disabled>Affecter les jurys</button>
-        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les encadrants.</p>
-    </span>
-
-    <!-- Cas 2 : uploadé → bouton actif -->
-    <span th:if="${session.versionId != null}">
-        <a th:href="@{/jurys/affectations(id=${session.versionId})}">
-            <button class="btn-success">Affecter les jurys et télécharger</button>
-        </a>
-    </span>
-</div>
-<!-- ÉTAPE 3 : Affecter jurys -->
-<div class="step">
-    <h3>Étape 3 — Affecter les soutenances</h3>
-
-    <!-- Cas 1 : pas encore uploadé -->
-    <span th:if="${session.versionId == null}">
-        <button class="btn-disabled" disabled>Affecter les soutenances</button>
-        <p class="msg-warn">⚠ Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
-    </span>
-
-    <!-- Cas 2 : uploadé → bouton actif -->
-    <span th:if="${session.versionId != null}">
-        <a th:href="@{/soutenances/planifier(id=${session.versionId})}">
-            <button class="btn-success">Affecter les soutenances et télécharger</button>
-        </a>
-    </span>
+        <!-- ETAPE 5 : Telecharger les PV -->
+        <div class="step">
+            <h3>Étape 5 — Télécharger les procès-verbaux (PV)</h3>
+            <div class="step-content">
+        <span th:if="${session.versionId == null}" class="step-control">
+            <button class="btn-disabled" disabled>Télécharger les PV</button>
+            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
+        </span>
+                <span th:if="${session.versionId != null}">
+            <a th:href="@{/pv/download(id=${session.versionId})}" class="btn-link">
+                <button class="btn-success">Télécharger les PV (.zip)</button>
+            </a>
+        </span>
+            </div>
+        </div>
+    </div>
 </div>
 
 </body>

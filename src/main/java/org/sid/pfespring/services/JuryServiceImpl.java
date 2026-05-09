@@ -32,10 +32,7 @@ import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.model.Specialite;
-import org.sid.pfespring.repository.ImportVersionRepository;
-import org.sid.pfespring.repository.JuryRepository;
-import org.sid.pfespring.repository.PFERepository;
-import org.sid.pfespring.repository.ProfRepository;
+import org.sid.pfespring.repository.*;
 import org.sid.pfespring.utils.ExcelTheme;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +49,7 @@ public class JuryServiceImpl
     private final ProfRepository profRepository;
     private final ImportVersionRepository versrepository;
     private final FileSystemService fsService;
+    private final SoutenanceRepository soutenanceRepository;
 
     //  appeler entityManager.flush() et executer delete avant insert( prob dunicite jury-pfe)
     @PersistenceContext
@@ -64,13 +62,16 @@ public class JuryServiceImpl
                            PFERepository pfeRepository,
                            ProfRepository profRepository,
                            ImportVersionRepository versRepository,
-                           FileSystemService fsService) {
+                           FileSystemService fsService,
+                           SoutenanceRepository soutenanceRepository) {
         super(juryRepository, juryMapper);
         this.juryRepository = juryRepository;
         this.pfeRepository = pfeRepository;
         this.profRepository = profRepository;
         this.versrepository = versRepository;
         this.fsService = fsService;
+        this.soutenanceRepository = soutenanceRepository;
+
     }
 
 
@@ -90,6 +91,8 @@ public class JuryServiceImpl
             throw new BusinessException("Encadrants non affectés. Cliquez d'abord sur 'Affecter les encadrants'.");
 
         // Supprimer les anciens jurys de cette version avant de recréer
+        soutenanceRepository.deleteSoutenancesByVersion(current_version);
+        entityManager.flush();
         juryRepository.deleteByVersionJpql(current_version);
         entityManager.flush();
         entityManager.clear();

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpSession;
-
+import java.time.Year;
 /**
  * Déclenche la planification des soutenances.
  * Aucun 2ème fichier n'est demandé : la date de début a été
@@ -33,6 +33,8 @@ public class SoutenanceController {
     @GetMapping("/planifier")
     public Object affecterSoutenances(@RequestParam("id") Long id,HttpSession session) throws Exception {
 //used flags
+        session.setAttribute("etape4", true);
+        int annee = Year.now().getValue();
         //  Vérification des étapes
         if (session.getAttribute("etape1") == null ||
             session.getAttribute("etape2") == null ||
@@ -48,7 +50,7 @@ public class SoutenanceController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=planning_soutenances.xlsx")
+                        "attachment; filename=planning_soutenances_" + annee + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excel);
     }

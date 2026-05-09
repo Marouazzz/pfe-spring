@@ -1,0 +1,226 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    min-height: 100vh;
+}
+
+nav {
+    background: #1d4ed8;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+}
+
+nav .brand {
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+
+nav a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+nav a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+nav a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: bold;
+}
+
+.page {
+    min-height: calc(100vh - 52px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 580px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 22px;
+    color: #1e3a8a;
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.page-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.step {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.2s;
+}
+
+.step:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.step h3 {
+    font-size: 15px;
+    color: #111827;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.upload-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+input[type="file"] {
+    font-size: 13px;
+    color: #374151;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    flex: 1;
+    min-width: 180px;
+}
+
+input[type="file"]:hover {
+    background: #ffffff;
+    border-color: #a0aec0;
+}
+
+button {
+    padding: 9px 22px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #7ed957;
+    color: white;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary:hover {
+    background: #85d957;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: #7ed957;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #85d957;
+    transform: translateY(-1px);
+}
+
+.btn-disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.msg-warn {
+    font-size: 12px;
+    color: #92400e;
+    background: #fef9ee;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 12px;
+}
+
+.btn-link {
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Ajustement pour les petits écrans */
+@media (max-width: 500px) {
+    nav {
+        padding: 0 16px;
+    }
+
+    .step {
+        padding: 16px 18px;
+    }
+
+    .upload-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    input[type="file"] {
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+/***********/
+    /* Cache les messages au départ, les affiche uniquement au hover */
+.step span .msg-warn {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    position: absolute; /* Pour ne pas décaler le contenu */
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* Affiche le message au survol du span parent ou du bouton désactivé */
+.step span:hover .msg-warn {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Alternative : pour que le message apparaisse au survol du bouton désactivé */
+.btn-disabled:hover + .msg-warn {
+    opacity: 1;
+    visibility: visible;
+}

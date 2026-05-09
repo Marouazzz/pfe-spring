@@ -430,7 +430,7 @@ public class SalleServiceImpl
             String p1Nom     = jury.getProf1()     != null ? nomProf(jury.getProf1())     : "";
             String p2Nom     = jury.getProf2()     != null ? nomProf(jury.getProf2())     : "N/A";
             String p2Affiche = jury.getProf2()     != null
-                    ? p2Nom + " (" + jury.getProf2().getSpecialite() + ")" : "N/A";
+                    ? p2Nom  : "N/A";
 
             // ── Styles via ExcelTheme ──────────────────────────────
             XSSFCellStyle dateStyle    = buildColorStyle(wb,

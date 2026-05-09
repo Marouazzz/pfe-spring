@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Gestion PFE</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav>
+    <span class="brand">Gestion PFE</span>
+    <div>
+        <a th:href="@{/home}">Orchestration de soutnances</a>
+        <a th:href="@{/dashboard}" class="active">Tableau de bord</a>
+    </div>
+</nav>
+
+<div class="page">
+
+    <h1 class="page-title">Tableau de bord</h1>
+
+    <div th:if="${noData}" class="no-data">
+        Aucune donnée disponible.
+        <a th:href="@{/home}">Importez d'abord un fichier Excel</a> depuis le workflow.
+    </div>
+
+    <div th:if="${!noData}" style="display:contents;">
+
+        <div class="top-row">
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="val" th:text="${statsGlobales['totalPfes']}">0</div>
+                    <div class="lbl">PFEs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" th:text="${statsGlobales['totalProfs']}">0</div>
+                    <div class="lbl">Encadrants</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" th:text="${statsGlobales['totalSoutenances']}">0</div>
+                    <div class="lbl">Soutenances</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" th:text="${statsGlobales['totalSalles']}">0</div>
+                    <div class="lbl">Salles disponibles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" th:text="${statsGlobales['totalJours']}">0</div>
+                    <div class="lbl">Jours de soutenance</div>
+                </div>
+            </div>
+
+            <div class="anomaly-panel">
+                <h3>Verification de conformite</h3>
+
+                <div class="anomaly-block">
+                    <h4>Equite d'encadrement
+                        (seuil : <span th:text="${statsGlobales['seuilMin']}">?</span>
+                        – <span th:text="${statsGlobales['seuilMax']}">?</span> PFEs/encadrant)
+                    </h4>
+                    <div th:if="${#lists.isEmpty(anomaliesEncadrement)}" class="ok-msg">
+                        Aucune anomalie detectee.
+                    </div>
+                    <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesEncadrement)}">
+                        <li th:each="a : ${anomaliesEncadrement}"
+                            th:class="${'anom-' + a['type']}"
+                            th:text="${a['prof'] + ' — ' + a['message']}">
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="anomaly-block">
+                    <h4>Conformite du planning (chevauchements, repos &lt; 1h)</h4>
+                    <div th:if="${#lists.isEmpty(anomaliesPlanning)}" class="ok-msg">
+                        Aucune anomalie detectee.
+                    </div>
+                    <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesPlanning)}">
+                        <li th:each="msg : ${anomaliesPlanning}" class="anom-plan" th:text="${msg}"></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card scrollable">
+                <h4>PFEs encadrés par professeur</h4>
+                <div class="scroll-wrapper">
+                    <canvas id="chartEncadrants"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Soutenances par filiere</h4>
+                <canvas id="chartFilieres"></canvas>
+            </div>
+            <div class="chart-card">
+                <h4>Participation aux soutenances par professeur</h4>
+                <canvas id="chartSoutenancesProf"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script th:if="${!noData}" th:inline="javascript">
+    /*<![CDATA[*/
+    // Données depuis le backend
+    const pfeParEncadrant = /*[[${pfesParEncadrant}]]*/ [];
+    const soutenancesParFiliereData = /*[[${soutenancesParFiliere}]]*/ [];
+    const soutenancesParProfData = /*[[${soutenancesParProf}]]*/ [];
+
+    const baseOpts = {
+        responsive: true,
+        maintainAspectRatio: false
+    };
+
+    // ========== GRAPHIQUE 1 : CORRIGÉ ==========
+    const encData = [...pfeParEncadrant].sort((a, b) => b.count - a.count);
+    const minCount = Math.min(...encData.map(e => e.count));
+    const maxCount = Math.max(...encData.map(e => e.count));
+
+    const canvasEnc = document.getElementById('chartEncadrants');
+
+    // Calculer la hauteur réelle nécessaire (40px par professeur)
+    // const totalHeight = encData.length * 42 + 30;
+    // canvasEnc.style.height = totalHeight + 'px';
+    // canvasEnc.style.minHeight = totalHeight + 'px';
+    canvasEnc.style.height = 'auto';
+    canvasEnc.style.maxHeight = '100%';
+
+    // Détruire l'ancien graphique s'il existe
+    if (window.chartEncInstance) {
+        window.chartEncInstance.destroy();
+    }
+
+    window.chartEncInstance = new Chart(canvasEnc, {
+        type: 'bar',
+        data: {
+            labels: encData.map(e => e.nom),
+            datasets: [{
+                data: encData.map(e => e.count),
+                backgroundColor: encData.map(e =>
+                    e.count < minCount ? '#ef4444' :
+                        e.count > maxCount ? '#ef4444' :
+                            e.count === maxCount ? '#f59e0b' : '#1d4ed8'
+                ),
+                borderRadius: 3,
+                barPercentage: 0.8,
+                categoryPercentage: 0.85
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.parsed.x + ' PFE(s)'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                },
+                y: {
+                    ticks: {
+                        font: { size: 11 },
+                        autoSkip: false  // ← CRUCIAL : afficher TOUS les labels
+                    }
+                }
+            }
+        }
+    });
+
+    // ========== GRAPHIQUE 2 : inchangé ==========
+    new Chart(document.getElementById('chartFilieres'), {
+        type: 'doughnut',
+        data: {
+            labels: soutenancesParFiliereData.map(f => f.filiere),
+            datasets: [{
+                data: soutenancesParFiliereData.map(f => f.count),
+                backgroundColor: ['#1d4ed8', '#7ed957', '#60a5fa', '#93c5fd', '#1e40af'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            ...baseOpts,
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } }
+            }
+        }
+    });
+
+    // ========== GRAPHIQUE 3 : CORRIGÉ (TOUS LES PROFS) ==========
+    // ========== GRAPHIQUE 3 : CORRIGÉ ==========
+    const spData = [...soutenancesParProfData].sort((a, b) => b.count - a.count);
+
+    if (window.chartProfInstance) {
+        window.chartProfInstance.destroy();
+    }
+
+    window.chartProfInstance = new Chart(document.getElementById('chartSoutenancesProf'), {
+        type: 'line',
+        data: {
+            labels: spData.map(e => e.nom),
+            datasets: [{
+                data: spData.map(e => e.count),
+                borderColor: '#1d4ed8',
+                backgroundColor: 'rgba(29,78,216,0.07)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#1d4ed8',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.parsed.y} participation(s)`
+                    }
+                },
+                subtitle: {
+                    display: true,
+                    text: 'Passez la souris sur un point pour voir le nom du professeur',
+                    align: 'center',
+                    font: { size: 9, weight: 'normal' },
+                    color: '#9ca3af',
+                    padding: { top: 8, bottom: 4 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                },
+                x: {
+                    ticks: { display: false },
+                    grid: { display: false }
+                }
+            },
+            layout: {
+                padding: { left: 5, right: 5, top: 10, bottom: 20 }
+            }
+        }
+    });
+
+    /*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    height: 100vh;
+    overflow: hidden;
+}
+
+nav {
+    background: #1d4ed8;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+}
+
+nav .brand {
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+nav a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+nav a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+nav a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: bold;
+}
+
+/* ── Page fills remaining height after nav ── */
+.page {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.page-title {
+    font-size: 17px;
+    color: #1e3a8a;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* ── No data ── */
+.no-data {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.no-data a {
+    color: #1d4ed8;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* ── Top row: stat cards + anomalies ── */
+.top-row {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+@media (max-width: 800px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+.stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #1d4ed8;
+    border-radius: 7px;
+    padding: 12px 14px;
+}
+
+.stat-card .val {
+    font-size: 26px;
+    font-weight: bold;
+    color: #111827;
+    line-height: 1;
+}
+
+.stat-card .lbl {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* ── Anomaly panel ── */
+.anomaly-panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.anomaly-panel h3 {
+    font-size: 12px;
+    color: #1e3a8a;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 7px;
+    flex-shrink: 0;
+}
+
+.anomaly-block h4 {
+    font-size: 11px;
+    color: #374151;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.ok-msg {
+    font-size: 11px;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 5px 9px;
+}
+
+.anomaly-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.anomaly-list li {
+    font-size: 11px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1.35;
+}
+
+.anom-SUR  { background: #fef2f2; color: #991b1b; border-left: 3px solid #ef4444; }
+.anom-SOUS { background: #fffbeb; color: #92400e; border-left: 3px solid #f59e0b; }
+.anom-plan { background: #fef2f2; color: #7f1d1d; border-left: 3px solid #dc2626; }
+
+/* ── Charts row — fills remaining space ── */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+}
+
+.chart-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.chart-card h4 {
+    font-size: 11px;
+    color: #374151;
+    font-weight: bold;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+/* canvas fills the card */
+.chart-card canvas {
+    flex: 1;
+    min-height: 0;
+    width: 100% !important;
+}
+
+/* Scrollable corrigé - VERSION FINALE */
+.chart-card.scrollable {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card.scrollable .scroll-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-height: 0;
+    width: 100%;
+}
+
+/* La clé : hauteur max au lieu de auto */
+.chart-card.scrollable canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 100%;  /* ← AJOUTEZ CETTE LIGNE */
+}
+/* Pour le graphique 3 - meilleure lisibilité */
+.chart-card:last-child canvas {
+    min-height: 250px;
+}
