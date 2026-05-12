@@ -5,8 +5,6 @@ package org.sid.pfespring.controller;
 import java.io.IOException;
 import java.time.Year;
 
-import org.sid.pfespring.dto.RequestPFEDTO;
-import org.sid.pfespring.dto.ResponsePFEDTO;
 import org.sid.pfespring.services.PFEService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,12 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 // @RestController
 @Controller
 @RequestMapping("/pfes")
-public class PFEController extends AbstractController<RequestPFEDTO, ResponsePFEDTO>{
+public class PFEController{
 
     PFEService pFEService;
 
     public PFEController(PFEService service) {
-        super(service);
         this.pFEService = service;
     }
 

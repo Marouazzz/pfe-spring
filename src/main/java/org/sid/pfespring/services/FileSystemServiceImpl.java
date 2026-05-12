@@ -99,4 +99,27 @@ public class FileSystemServiceImpl implements FileSystemService{
     }
     }
 
+    @Override
+    public void deletePVFolder(Long id) throws IOException {
+    Path root = Paths.get(rootFolder);
+    Files.list(root)
+            .filter(Files::isDirectory)
+            .filter(p -> p.getFileName().toString().endsWith("_v" + id))
+            .forEach(profDir -> {
+                try {
+                    Files.walk(profDir)
+                            .sorted((a, b) -> b.compareTo(a)) // delete files first
+                            .forEach(path -> {
+                                try {
+                                    Files.deleteIfExists(path);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+}
+
 }

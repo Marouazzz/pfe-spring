@@ -8,6 +8,9 @@ import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.sid.pfespring.services.FileSystemService;
+import org.sid.pfespring.services.JuryService;
+import org.sid.pfespring.services.PFEService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +35,16 @@ public class PvController {
     @Value("${pv.root}")
     private String rootFolder;
 
+    private JuryService juryService;
+    private PFEService pFEService;
+    private FileSystemService fsService;
+
+    public PvController(JuryService juryService,PFEService pfeService,FileSystemService fSystemService){
+        this.juryService = juryService;
+        this.pFEService = pfeService;
+        this.fsService = fSystemService;
+    }
+
     /**
      * Zippe tous les sous-dossiers qui se terminent par "_v{id}"
      * et renvoie le ZIP en téléchargement.
@@ -48,6 +61,8 @@ public class PvController {
         if (!Files.exists(root)) {
             return ResponseEntity.notFound().build();
         }
+        this.pFEService.createPVFolder(id);
+        this.juryService.genererPV(id);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
@@ -79,7 +94,7 @@ public class PvController {
         if (zipBytes.length == 0) {
             return ResponseEntity.noContent().build();
         }
-
+        fsService.deletePVFolder(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=PV_v" + id + ".zip")

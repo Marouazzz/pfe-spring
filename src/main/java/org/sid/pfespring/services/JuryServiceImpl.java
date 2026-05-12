@@ -32,7 +32,11 @@ import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.model.Specialite;
-import org.sid.pfespring.repository.*;
+import org.sid.pfespring.repository.ImportVersionRepository;
+import org.sid.pfespring.repository.JuryRepository;
+import org.sid.pfespring.repository.PFERepository;
+import org.sid.pfespring.repository.ProfRepository;
+import org.sid.pfespring.repository.SoutenanceRepository;
 import org.sid.pfespring.utils.ExcelTheme;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +81,7 @@ public class JuryServiceImpl
 
     @Override
     @Transactional
-    public List<ResponseJuryDTO> affecterJury(Long id) {
+    public void affecterJury(Long id) {
         ImportVersion current_version = versrepository.findById(id).orElseThrow(() -> new BusinessException("Lien invalide. Veuillez ré-importer le fichier Excel."));
         // CHECK 1 — PFEs existent pour cette version ?
         List<PFE> tousLesPfes = pfeRepository.findByVersion(current_version);
@@ -201,8 +205,6 @@ public class JuryServiceImpl
         }
 
         List<Jury> saved = repository.saveAll(jurysACreer);
-        jurysACreer.forEach(fsService::generatePVFile);
-        return mapper.toResponseList(saved);
     }
 
     private Prof fallbackTech(List<Prof> profsTech,
@@ -407,4 +409,12 @@ public class JuryServiceImpl
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         return style;
-    }}
+    }
+
+    @Override
+        public void genererPV(Long id) {
+        ImportVersion version  = versrepository.findById(id).get();
+        List<Jury> jurys = ((JuryRepository)repository).findByVersion(version);
+        jurys.forEach(fsService::generatePVFile);
+        }
+}

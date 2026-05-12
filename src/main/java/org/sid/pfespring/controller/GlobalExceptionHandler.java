@@ -7,6 +7,7 @@ import org.sid.pfespring.exception.EtudiantNotFoundException;
 import org.sid.pfespring.exception.ProfImportValidationException;
 import org.sid.pfespring.exception.PFEImportValidationException;
 import org.sid.pfespring.exception.InvalidSheetStructureException;
+import org.sid.pfespring.exception.NotSupportedLanguageException;
 //import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,6 +53,11 @@ public class GlobalExceptionHandler {
 //    }
 
 
+    @ExceptionHandler(NotSupportedLanguageException.class)
+    public String handleLnaguageException(NotSupportedLanguageException e,RedirectAttributes ra){
+        ra.addAttribute("message",e.getMessage());
+        return "redirect:/erreur";
+    }
     @ExceptionHandler(EtudiantImportValidationException.class)
     public String handleEtudiantImport(EtudiantImportValidationException e, RedirectAttributes ra) {
         ra.addAttribute("message", "Le sheet 'etu' contient des erreurs : " + String.join(" | ", e.getErrors()));

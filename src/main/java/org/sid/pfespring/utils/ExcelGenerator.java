@@ -1,16 +1,24 @@
 package org.sid.pfespring.utils;
 
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import java.util.Map;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFColor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Collections;
+import java.util.Map;
+
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 
 public class ExcelGenerator {
 
@@ -30,11 +38,24 @@ public class ExcelGenerator {
         // Set column widths - TRÈS LARGES pour bien visualiser
         sheet.setColumnWidth(0, 8000);  // Encadrant
 
-        // Définir les largeurs pour TOUTES les colonnes de groupes possibles
-        for (int i = 1; i <= maxEtudiants; i++) {
-            sheet.setColumnWidth(i, 6000);  // Groupes 1,2,3,4,5...
-        }
+for (int i = 1; i <= maxEtudiants; i++) {
 
+    int maxLength = 20;
+
+    for (Map<Long, String> pfes : affectations.values()) {
+
+        List<String> etudiantsList = new ArrayList<>(pfes.values());
+
+        if (i - 1 < etudiantsList.size()) {
+
+            String content = etudiantsList.get(i - 1);
+
+            maxLength = Math.max(maxLength, content.length());
+        }
+    }
+
+    sheet.setColumnWidth(i, Math.min((maxLength + 5) * 256, 12000));
+}
         // Create HEADER row
         Row headerRow = sheet.createRow(0);
         headerRow.setHeightInPoints(30);
@@ -78,12 +99,22 @@ public class ExcelGenerator {
                 Cell cell = row.createCell(colNum);
 
                 // Si l'étudiant existe pour ce groupe, mettre son nom
-                if (colNum - 1 < etudiantsList.size()) {
-                    String etudiantName = etudiantsList.get(colNum - 1);
-                    cell.setCellValue(etudiantName);
-                    CellStyle wrapStyle = styles.get(rowNum % 2 == 0 ? "cell_even_wrap" : "cell_odd_wrap");
-                    cell.setCellStyle(wrapStyle);
-                } else {
+if (colNum - 1 < etudiantsList.size()) {
+
+    String etudiants = etudiantsList.get(colNum - 1)
+            .replace(",", "\n");
+
+    cell.setCellValue(etudiants);
+
+    CellStyle wrapStyle = styles.get(
+            rowNum % 2 == 0 ? "cell_even_wrap" : "cell_odd_wrap"
+    );
+
+    cell.setCellStyle(wrapStyle);
+
+int nbEtudiants = etudiantsList.size();
+row.setHeightInPoints(nbEtudiants * 20);
+} else {
                     // Cellule vide pour les groupes sans étudiants
                     cell.setCellValue("");
                     CellStyle emptyStyle = styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center");

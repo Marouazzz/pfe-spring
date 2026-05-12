@@ -215,11 +215,15 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         }
         // 8. Sauvegarde (important)
         encadrantrepo.saveAll(encadrants);
-        encadrants.forEach(fsService::createPVFolder);
         repository.saveAll(pfes);
     }
 
-
+    @Override
+    public void createPVFolder(Long id ){
+        ImportVersion version = versionrepo.findById(id).get();
+        List<Encadrant> encadrants = encadrantrepo.findByVersion(version);
+        encadrants.forEach(fsService::createPVFolder);
+    }
 
     @Transactional
     @Override

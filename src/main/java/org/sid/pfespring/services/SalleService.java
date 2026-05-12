@@ -2,14 +2,14 @@ package org.sid.pfespring.services;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.sid.pfespring.model.ImportVersion;
+
 import org.apache.poi.ss.usermodel.Sheet;
-import org.sid.pfespring.dto.RequestSalleDTO;
 import org.sid.pfespring.dto.ResponseSalleDTO;
 import org.sid.pfespring.dto.ResponseSoutenanceDTO;
+import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Soutenance;
 
-public interface SalleService extends GenericService<RequestSalleDTO, ResponseSalleDTO> {
+public interface SalleService{
 
     /**
      * Importe les salles depuis la feuille "salles" du fichier Excel.

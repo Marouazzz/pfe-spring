@@ -1,12 +1,11 @@
 package org.sid.pfespring.services;
 
-import org.sid.pfespring.dto.RequestJuryDTO;
-import org.sid.pfespring.dto.ResponseJuryDTO;
+
 
 import java.io.IOException;
-import java.util.List;
 
-public interface JuryService extends GenericService<RequestJuryDTO, ResponseJuryDTO> {
-    List<ResponseJuryDTO> affecterJury(Long id);
+public interface JuryService  {
+    void affecterJury(Long id);
     byte[] exportJuryExcel(Long id) throws IOException;
+    void genererPV(Long id);
 }
