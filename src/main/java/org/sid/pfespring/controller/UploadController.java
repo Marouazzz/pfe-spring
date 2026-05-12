@@ -2,8 +2,6 @@ package org.sid.pfespring.controller;
 
 
 
-import java.io.IOException;
-
 import org.sid.pfespring.dto.ResponseUploadDTO;
 import org.sid.pfespring.services.UploadService;
 import org.springframework.stereotype.Controller;
@@ -40,8 +38,9 @@ public class UploadController {
 
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,HttpSession session) {
-        ResponseUploadDTO dto = this.service.importSheets(file);      
-        session.setAttribute("etape1", true);
+        ResponseUploadDTO dto = this.service.importSheets(file); 
+        for(int i=2;i<5;i++) session.setAttribute("etape"+i,null);
+        session.setAttribute("etape1", true);  
         session.setAttribute("versionId",dto.versionId());
         session.setAttribute("dateDebut", dto.dateDebut());  
         return "upload";

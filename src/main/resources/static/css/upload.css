@@ -224,3 +224,62 @@ button {
     opacity: 1;
     visibility: visible;
 }
+
+
+.step-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* push Excel button to far right */
+.excel-right {
+    margin-left: auto;
+}
+
+/* Excel button fix */
+
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+
+    font-weight: 600;
+}
+.excel-btn {
+    background: #1D6F42;
+}
+.zip-btn {
+    background: #1d4ed8;
+}
+/* force white SVG */
+.excel-icon {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
+.step-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* group left buttons */
+.step-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* right side download always aligned right */
+.step-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}

@@ -25,7 +25,7 @@ public class Salle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nom_salle", unique = true, nullable = false)
+    @Column(name = "nom_salle", nullable = false)
     private String nomSalle;
 
     @Column(nullable = false)

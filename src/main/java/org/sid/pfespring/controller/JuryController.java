@@ -37,17 +37,24 @@ public class JuryController {
 //                .body(fichier);
 //    }
     @GetMapping("/affectations")
-    public Object affecterJury(@RequestParam("id") Long id, HttpSession session) throws IOException {
-        int annee = Year.now().getValue();
+    public String affecterJury(@RequestParam("id") Long id, HttpSession session) throws IOException {
         if (session.getAttribute("etape1") == null ||
-                session.getAttribute("etape2") == null) {
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes avant d'affecter les jurys.";
+        session.getAttribute("etape2") == null) {
+            throw new RuntimeException("Vous devez compléter les étapes précédentes avant d'affecter les jurys.");
         }
-
+        
         juryService.affecterJury(id);
         session.setAttribute("etape3", true);
         session.setAttribute("versionId", id);
-        session.removeAttribute("etape4");
+        return "redirect:/home";
+    }
+    
+    @GetMapping("/download")
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam("id") Long id,HttpSession session) throws IOException{
+                if (session.getAttribute("etape3") == null) {
+    throw new RuntimeException("Affectation des Encadrants non générée");
+}
+        int annee = Year.now().getValue();
         byte[] fichier = juryService.exportJuryExcel(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,

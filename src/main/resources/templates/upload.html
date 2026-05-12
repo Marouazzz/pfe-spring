@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion PFE — Workflow</title>
     <link rel="stylesheet" th:href="@{/css/upload.css}">
+
 </head>
 <body>
 
@@ -30,71 +31,132 @@
             </form>
             <p th:if="${session.versionId != null}" style="font-size:12px; color:#15803d; margin-top:10px;"></p>
         </div>
-
-        <!-- ETAPE 2 : Affecter encadrants -->
         <div class="step">
             <h3>Étape 2 — Affecter les encadrants</h3>
+            
             <div class="step-content">
-        <span th:if="${session.versionId == null}" class="step-control">
-            <button class="btn-disabled" disabled>Affecter les encadrants</button>
-            <p class="msg-warn">Veuillez d'abord importer un fichier Excel (Étape 1).</p>
-        </span>
-                <span th:if="${session.versionId != null}">
-            <a th:href="@{/pfes/affectations(id=${session.versionId})}" class="btn-link">
-                <button class="btn-success">Affecter les encadrants</button>
-            </a>
-        </span>
+                
+                <!-- LEFT -->
+                <div class="step-left">
+                    
+                    <span th:if="${session.versionId == null or session.etape1 == null}">
+                        <button class="btn-disabled" disabled>Affecter les encadrants</button>
+                        <p class="msg-warn">Veuillez d'abord importer un fichier Excel (Étape 1).</p>
+                    </span>
+                    
+                    <span th:if="${session.versionId != null and session.etape1 != null}">
+                        <a th:href="@{/pfes/affectations(id=${session.versionId})}">
+                            <button class="btn-success">Affecter les encadrants</button>
+                        </a>
+                    </span>
+                    
+                </div>
+                
+                <!-- RIGHT -->
+                <div class="step-right">
+                    <span th:if="${session.etape2}">
+                        <a th:href="@{/pfes/download(id=${session.versionId})}" class="excel-link">
+                            <button class="excel-btn export-btn">
+                                <img th:src="@{/images/excel.svg}" class="excel-icon">
+                                Excel
+                            </button>
+                        </a>
+                    </span>
+                </div>
+                
             </div>
         </div>
-
-        <!-- ETAPE 3 : Affecter jurys -->
         <div class="step">
             <h3>Étape 3 — Affecter les jurys</h3>
+            
             <div class="step-content">
-        <span th:if="${session.versionId == null}" class="step-control">
-            <button class="btn-disabled" disabled>Affecter les jurys</button>
-            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les encadrants.</p>
-        </span>
-                <span th:if="${session.versionId != null}">
-            <a th:href="@{/jurys/affectations(id=${session.versionId})}" class="btn-link">
-                <button class="btn-success">Affecter les jurys et télécharger</button>
-            </a>
-        </span>
+                
+                <div class="step-left">
+                    
+                    <span th:if="${session.versionId == null or session.etape2 == null}">
+                        <button class="btn-disabled" disabled>Affecter les jurys</button>
+                        <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les encadrants</p>
+                    </span>
+                    
+                    <span th:if="${session.versionId != null and session.etape2 != null}">
+                        <a th:href="@{/jurys/affectations(id=${session.versionId})}">
+                            <button class="btn-success">Affecter les jurys</button>
+                        </a>
+                    </span>
+                    
+                </div>
+                
+                <div class="step-right">
+                    <span th:if="${session.etape3}">
+                        <a th:href="@{/jurys/download(id=${session.versionId})}" class="excel-link">
+                            <button class="excel-btn export-btn">
+                                <img th:src="@{/images/excel.svg}" class="excel-icon">
+                                Excel
+                            </button>
+                        </a>
+                    </span>
+                </div>
+                
             </div>
         </div>
+        
 
-        <!-- ETAPE 4 : Planifier soutenances -->
         <div class="step">
-            <h3>Étape 4 — Planifier les soutenances</h3>
+            <h3>Étape 4 — Planifier soutenances</h3>
+            
             <div class="step-content">
-        <span th:if="${session.versionId == null}" class="step-control">
-            <button class="btn-disabled" disabled>Planifier les soutenances</button>
-            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
-        </span>
-                <span th:if="${session.versionId != null}">
-            <a th:href="@{/soutenances/planifier(id=${session.versionId})}" class="btn-link">
-                <button class="btn-success">Planifier les soutenances et télécharger</button>
-            </a>
-        </span>
-            </div>
+                
+                <div class="step-left">
+                    
+                    <span th:if="${session.versionId == null or session.etape3 == null}">
+                        <button class="btn-disabled" disabled>Planifier</button>
+                    </span>
+                    
+            <span th:if="${session.versionId != null and session.etape3 != null}">
+                <a th:href="@{/soutenances/planifier(id=${session.versionId})}">
+                    <button class="btn-success">Planifier</button>
+                </a>
+            </span>
+            
         </div>
-
-        <!-- ETAPE 5 : Telecharger les PV -->
-        <div class="step">
-            <h3>Étape 5 — Télécharger les procès-verbaux (PV)</h3>
-            <div class="step-content">
-        <span th:if="${session.versionId == null}" class="step-control">
-            <button class="btn-disabled" disabled>Télécharger les PV</button>
-            <p class="msg-warn">Veuillez d'abord importer un fichier Excel et affecter les jurys.</p>
-        </span>
-                <span th:if="${session.versionId != null}">
-            <a th:href="@{/pv/download(id=${session.versionId})}" class="btn-link">
-                <button class="btn-success">Télécharger les PV (.zip)</button>
-            </a>
-        </span>
-            </div>
+        
+        <div class="step-right">
+                                <span th:if="${session.etape4}">
+                        <a th:href="@{/soutenances/download(id=${session.versionId})}" class="excel-link">
+                            <button class="excel-btn export-btn">
+                                <img th:src="@{/images/excel.svg}" class="excel-icon">
+                                Excel
+                            </button>
+                        </a>
+                    </span>
         </div>
+        
     </div>
+</div>
+<div class="step">
+    <h3>Étape 5 — Télécharger les procès-verbaux (PV)</h3>
+    
+    <div class="step-content">
+        
+        <div class="step-left">
+            <span th:if="${session.versionId == null or session.etape4 == null}">
+                        <button class="btn-disabled" disabled>Telecharge PV</button>
+                        <p class="msg-warn">Veuillez d'abord planifier les soutenances</p>
+                    </span>
+            <span th:if="${session.versionId != null and session.etape4 != null}">
+                <a th:href="@{/pv/download(id=${session.versionId})}">
+                    <button class="export-btn zip-btn">
+                         <img th:src="@{/images/zip.svg}" class="excel-icon">
+                         Télécharger PV
+                    </button>
+                </a>
+            </span>
+        </div>
+        
+        <div class="step-right"></div>
+        
+    </div>
+</div>
 </div>
 
 </body>

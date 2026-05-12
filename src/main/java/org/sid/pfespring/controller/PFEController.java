@@ -27,13 +27,20 @@ public class PFEController{
     }
 
     @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterProfEtudiants(@RequestParam("id") Long id,HttpSession session) throws IOException {
-        int annee = Year.now().getValue();
+    public String affecterProfEtudiants(@RequestParam("id") Long id,HttpSession session) throws IOException {
         pFEService.appliquerAffectation(id);
         session.setAttribute("etape2", true);
         session.setAttribute("versionId", id);
-        session.removeAttribute("etape3");
-        session.removeAttribute("etape4");
+        return "redirect:/home";
+        
+    }
+    
+    @GetMapping("/download")
+    public ResponseEntity<byte[]> exportFile(@RequestParam("id") Long id,HttpSession session) throws IOException{
+        if (session.getAttribute("etape2") == null) {
+    throw new RuntimeException("Affectation non générée");
+}
+        int annee = Year.now().getValue();
         byte [] files = pFEService.exportPFEAffectation(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
