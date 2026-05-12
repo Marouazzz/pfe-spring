@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class SoutenanceMapper extends AbstractMapper<Soutenance, RequestSoutenanceDTO, ResponseSoutenanceDTO> {
+public class SoutenanceMapper implements GenericMapper<Soutenance, RequestSoutenanceDTO, ResponseSoutenanceDTO> {
 
     private final SalleMapper salleMapper;
 

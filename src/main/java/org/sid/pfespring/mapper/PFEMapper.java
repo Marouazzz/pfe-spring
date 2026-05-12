@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class PFEMapper extends AbstractMapper<PFE,RequestPFEDTO, ResponsePFEDTO> {
+public class PFEMapper implements GenericMapper<PFE,RequestPFEDTO, ResponsePFEDTO> {
 
     private EtudiantMapper em;
     private ProfMapper pm;

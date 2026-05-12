@@ -2,13 +2,12 @@ package org.sid.pfespring.mapper;
 
 import org.sid.pfespring.dto.RequestSalleDTO;
 import org.sid.pfespring.dto.ResponseSalleDTO;
-import org.sid.pfespring.mapper.AbstractMapper;
 import org.sid.pfespring.model.Salle;
 import org.springframework.stereotype.Component;
 
 @Component
 // L'ordre doit être : Salle (E), RequestSalleDTO (Req), ResponseSalleDTO (Res)
-public class SalleMapper extends AbstractMapper<Salle, RequestSalleDTO, ResponseSalleDTO> {
+public class SalleMapper implements GenericMapper<Salle, RequestSalleDTO, ResponseSalleDTO> {
 
     @Override
     public Salle toEntity(RequestSalleDTO dto) {

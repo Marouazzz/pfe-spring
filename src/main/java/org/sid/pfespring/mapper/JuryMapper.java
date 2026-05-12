@@ -8,7 +8,7 @@ import org.sid.pfespring.model.Jury;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JuryMapper extends AbstractMapper<Jury, RequestJuryDTO, ResponseJuryDTO> {
+public class JuryMapper implements GenericMapper<Jury, RequestJuryDTO, ResponseJuryDTO> {
 
     private final EtudiantMapper em;
     private final ProfMapper pm;

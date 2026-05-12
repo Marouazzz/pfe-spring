@@ -7,8 +7,7 @@ import org.sid.pfespring.model.Specialite;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProfMapper
-        extends AbstractMapper<Prof, RequestProfDTO, ResponseProfDTO> {
+public class ProfMapper implements GenericMapper<Prof, RequestProfDTO, ResponseProfDTO> {
 
     @Override
     public Prof toEntity(RequestProfDTO request) {

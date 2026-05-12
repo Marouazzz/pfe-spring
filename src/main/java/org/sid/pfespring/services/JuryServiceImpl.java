@@ -204,7 +204,7 @@ public class JuryServiceImpl
                     .build());
         }
 
-        List<Jury> saved = repository.saveAll(jurysACreer);
+        repository.saveAll(jurysACreer);
     }
 
     private Prof fallbackTech(List<Prof> profsTech,
