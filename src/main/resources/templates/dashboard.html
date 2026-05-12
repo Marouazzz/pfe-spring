@@ -12,7 +12,7 @@
 <nav>
     <span class="brand">Gestion PFE</span>
     <div>
-        <a th:href="@{/home}">Orchestration de soutnances</a>
+        <a th:href="@{/home}">Orchestration de soutenances</a>
         <a th:href="@{/dashboard}" class="active">Tableau de bord</a>
     </div>
 </nav>
@@ -43,6 +43,7 @@
                     <div class="val" th:text="${statsGlobales['totalSoutenances']}">0</div>
                     <div class="lbl">Soutenances</div>
                 </div>
+                <div class="center"></div>
                 <div class="stat-card">
                     <div class="val" th:text="${statsGlobales['totalSalles']}">0</div>
                     <div class="lbl">Salles disponibles</div>
@@ -105,36 +106,55 @@
     </div>
 
 </div>
+
 <script th:if="${!noData}" th:inline="javascript">
     /*<![CDATA[*/
-    // Données depuis le backend
-    const pfeParEncadrant = /*[[${pfesParEncadrant}]]*/ [];
-    const soutenancesParFiliereData = /*[[${soutenancesParFiliere}]]*/ [];
-    const soutenancesParProfData = /*[[${soutenancesParProf}]]*/ [];
 
+    /* ── Palette centralisée ── */
+    const P = {
+        bleuNuit:         '#0E2931',
+        bleuPetrole:      '#12484C',
+        vertCanard:       '#2B7574',
+        rougeBrique:      '#861211',
+        blancCasse:       '#E2E2E0',
+
+        vertCanardAlpha:  'rgba(43, 117, 116, 0.12)',
+        bleuNuitAlpha:    'rgba(14, 41, 49, 0.12)',
+        rougeBriqueAlpha: 'rgba(134, 18, 17, 0.12)',
+
+        /* Donut : 3 teintes de la palette pour les filières */
+        donut: ['#0E2931', '#12484C', '#861211'],
+
+        /* Axes / grilles */
+        gridColor:  'rgba(14, 41, 49, 0.07)',
+        tickColor:  '#12484C',
+        labelColor: '#12484C',
+    };
+
+    /* ── Options de base ── */
     const baseOpts = {
         responsive: true,
         maintainAspectRatio: false
     };
 
-    // ========== GRAPHIQUE 1 : CORRIGÉ ==========
-    const encData = [...pfeParEncadrant].sort((a, b) => b.count - a.count);
-    const minCount = Math.min(...encData.map(e => e.count));
-    const maxCount = Math.max(...encData.map(e => e.count));
+    /* ── Défaults globaux Chart.js ── */
+    Chart.defaults.font.family  = "'DM Sans', 'Segoe UI', Arial, sans-serif";
+    Chart.defaults.color        = P.labelColor;
+
+    // ════════════════════════════════════
+    // GRAPHIQUE 1 — Barres horizontales
+    // PFEs encadrés par professeur
+    // ════════════════════════════════════
+    const pfeParEncadrant       = /*[[${pfesParEncadrant}]]*/ [];
+    const encData               = [...pfeParEncadrant].sort((a, b) => b.count - a.count);
+    const maxCount              = Math.max(...encData.map(e => e.count));
+    const minCount              = Math.min(...encData.map(e => e.count));
 
     const canvasEnc = document.getElementById('chartEncadrants');
-
-    // Calculer la hauteur réelle nécessaire (40px par professeur)
-    // const totalHeight = encData.length * 42 + 30;
-    // canvasEnc.style.height = totalHeight + 'px';
-    // canvasEnc.style.minHeight = totalHeight + 'px';
-    canvasEnc.style.height = 'auto';
+    canvasEnc.style.height    = 'auto';
     canvasEnc.style.maxHeight = '100%';
 
-    // Détruire l'ancien graphique s'il existe
-    if (window.chartEncInstance) {
-        window.chartEncInstance.destroy();
-    }
+    if (window.chartEncInstance) window.chartEncInstance.destroy();
 
     window.chartEncInstance = new Chart(canvasEnc, {
         type: 'bar',
@@ -142,23 +162,26 @@
             labels: encData.map(e => e.nom),
             datasets: [{
                 data: encData.map(e => e.count),
+                /* Max → rouge brique  |  min → vert canard pâle  |  normal → vert canard */
                 backgroundColor: encData.map(e =>
-                    e.count < minCount ? '#ef4444' :
-                        e.count > maxCount ? '#ef4444' :
-                            e.count === maxCount ? '#f59e0b' : '#1d4ed8'
+                    e.count === maxCount ? P.rougeBrique :
+                        e.count === minCount ? 'rgba(43,117,116,0.45)' :
+                            P.vertCanard
                 ),
                 borderRadius: 3,
-                barPercentage: 0.8,
+                barPercentage: 0.78,
                 categoryPercentage: 0.85
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            ...baseOpts,
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: P.bleuNuit,
+                    titleColor: P.blancCasse,
+                    bodyColor: P.blancCasse,
                     callbacks: {
                         label: ctx => ctx.parsed.x + ' PFE(s)'
                     }
@@ -167,44 +190,71 @@
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { stepSize: 1, font: { size: 10 } }
+                    grid: { color: P.gridColor },
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 10 },
+                        color: P.tickColor
+                    }
                 },
                 y: {
+                    grid: { display: false },
                     ticks: {
                         font: { size: 11 },
-                        autoSkip: false  // ← CRUCIAL : afficher TOUS les labels
+                        color: P.tickColor,
+                        autoSkip: false
                     }
                 }
             }
         }
     });
 
-    // ========== GRAPHIQUE 2 : inchangé ==========
+    // ════════════════════════════════════
+    // GRAPHIQUE 2 — Donut filières
+    // ════════════════════════════════════
+    const soutenancesParFiliereData = /*[[${soutenancesParFiliere}]]*/ [];
+
     new Chart(document.getElementById('chartFilieres'), {
         type: 'doughnut',
         data: {
             labels: soutenancesParFiliereData.map(f => f.filiere),
             datasets: [{
                 data: soutenancesParFiliereData.map(f => f.count),
-                backgroundColor: ['#1d4ed8', '#7ed957', '#60a5fa', '#93c5fd', '#1e40af'],
-                borderWidth: 2
+                backgroundColor: P.donut,
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 6
             }]
         },
         options: {
             ...baseOpts,
             plugins: {
-                legend: { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } }
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 11 },
+                        boxWidth: 12,
+                        color: P.bleuNuit,
+                        padding: 14
+                    }
+                },
+                tooltip: {
+                    backgroundColor: P.bleuNuit,
+                    titleColor: P.blancCasse,
+                    bodyColor: P.blancCasse
+                }
             }
         }
     });
 
-    // ========== GRAPHIQUE 3 : CORRIGÉ (TOUS LES PROFS) ==========
-    // ========== GRAPHIQUE 3 : CORRIGÉ ==========
+    // ════════════════════════════════════
+    // GRAPHIQUE 3 — Line participations
+    // ════════════════════════════════════
+    const soutenancesParProfData = /*[[${soutenancesParProf}]]*/ [];
     const spData = [...soutenancesParProfData].sort((a, b) => b.count - a.count);
 
-    if (window.chartProfInstance) {
-        window.chartProfInstance.destroy();
-    }
+    if (window.chartProfInstance) window.chartProfInstance.destroy();
 
     window.chartProfInstance = new Chart(document.getElementById('chartSoutenancesProf'), {
         type: 'line',
@@ -212,22 +262,29 @@
             labels: spData.map(e => e.nom),
             datasets: [{
                 data: spData.map(e => e.count),
-                borderColor: '#1d4ed8',
-                backgroundColor: 'rgba(29,78,216,0.07)',
+                borderColor:        P.vertCanard,
+                backgroundColor:    P.vertCanardAlpha,
+                pointBackgroundColor: P.bleuNuit,
+                pointBorderColor:   P.vertCanard,
+                pointBorderWidth:   2,
                 borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#1d4ed8',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: P.rougeBrique,
                 fill: true,
-                tension: 0.3
+                tension: 0.35
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            ...baseOpts,
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: P.bleuNuit,
+                    titleColor: P.blancCasse,
+                    bodyColor:  P.blancCasse,
                     callbacks: {
+                        title: ctx => spData[ctx[0].dataIndex]?.nom ?? '',
                         label: ctx => `${ctx.parsed.y} participation(s)`
                     }
                 },
@@ -243,7 +300,12 @@
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { stepSize: 1, font: { size: 10 } }
+                    grid: { color: P.gridColor },
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 10 },
+                        color: P.tickColor
+                    }
                 },
                 x: {
                     ticks: { display: false },

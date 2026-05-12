@@ -58,16 +58,4 @@ public class Etudiant {
         return nom + " " + prenom;
     }
 
-    @Override
-public int hashCode() {
-    return cne != null ? cne.hashCode() : 0;
-}
-
-@Override
-public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Etudiant)) return false;
-    Etudiant e = (Etudiant) o;
-    return cne != null && cne.equals(e.cne);
-}
 }

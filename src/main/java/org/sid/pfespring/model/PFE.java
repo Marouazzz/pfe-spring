@@ -53,10 +53,9 @@ public class PFE {
     @Column(name = "langue", nullable = true)
     private Langue langue;
 
-//    @OneToMany(mappedBy="pfe")
-//    private Set<Etudiant> etudiants;
-      @OneToMany(mappedBy = "pfe", fetch = FetchType.EAGER)
-      private Set<Etudiant> etudiants;
+
+    @OneToMany(mappedBy = "pfe", fetch = FetchType.EAGER)
+    private Set<Etudiant> etudiants;
 
     @ManyToOne
     @JoinColumn(name="encadrant_id")

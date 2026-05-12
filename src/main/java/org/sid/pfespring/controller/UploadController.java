@@ -1,5 +1,5 @@
 package org.sid.pfespring.controller;
-
+/*
 
 
 import java.io.IOException;
@@ -14,16 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
-
-/**
- * Gère l'upload unique du fichier Excel.
- * Le fichier contient TOUTES les feuilles :
- *   - etu               → étudiants
- *   - profs             → professeurs
- *   - pfe_v2            → sujets PFE + CNEs + langue
- *   - salles            → salles de soutenance
- *   - jours_soutenances → date de début (1 seule date, les suivantes calculées auto)
- */
 @Controller
 @RequestMapping("/home")
 public class UploadController {
@@ -34,10 +24,6 @@ public class UploadController {
         this.service = service;
     }
 
-
-    
-
-
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,HttpSession session) {
         ResponseUploadDTO dto = this.service.importSheets(file);      
@@ -46,50 +32,216 @@ public class UploadController {
         session.setAttribute("dateDebut", dto.dateDebut());  
         return "upload";
     }
-
     @GetMapping
     public String welcomePage() {
         return "upload";
     }
 
+
+}
+*/
+
+import java.time.LocalDate;
+
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.sid.pfespring.dto.ResponseUploadDTO;
+import org.sid.pfespring.model.ImportVersion;
+import org.sid.pfespring.services.ImportVersionService;
+import org.sid.pfespring.services.SalleService;
+import org.sid.pfespring.services.UploadService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+@RequestMapping("/home")
+public class UploadController {
+
+    private final UploadService uploadService;
+    private final ImportVersionService versionService;
+    private final SalleService salleService;
+
+    public UploadController(
+            UploadService uploadService,
+            ImportVersionService versionService,
+            SalleService salleService
+    ) {
+        this.uploadService = uploadService;
+        this.versionService = versionService;
+        this.salleService = salleService;
+    }
+
     /**
-     * Import unique : lit toutes les feuilles du même fichier Excel
-     * et stocke les PFEs + la date de début en session.
+     * =========================
+     * PAGE PRINCIPALE
+     * =========================
      */
-    // @PostMapping("/upload")
-    // public String uploadFile(@RequestParam("file") MultipartFile file,
-    //                          HttpSession session) throws Exception {
-    //     byte[] bytes = file.getBytes(); // lire une fois, réutiliser plusieurs fois
-    //     session.setAttribute("etape1", true);
-    //     // 1. Importer étudiants (feuille "etu")
-    //     etudiantService.importFromExcel(toMultipartFile(bytes, file.getOriginalFilename()));
+    @GetMapping
+    public String home(HttpSession session, Model model) {
 
-    //     // 2. Importer profs (feuille "profs")
-    //     profService.importFromExcel(toMultipartFile(bytes, file.getOriginalFilename()));
+        // =========================
+        // FLAGS ETAPES
+        // =========================
+        boolean etape1Ok = session.getAttribute("etape1") != null;
+        boolean etape2Ok = session.getAttribute("etape2") != null;
+        boolean etape3Ok = session.getAttribute("etape3") != null;
+        boolean etape4Ok = session.getAttribute("etape4") != null;
+        boolean etape5Ok = session.getAttribute("etape5") != null;
 
-    //     // 3. Lire les PFEs (feuille "pfe_v2") → mis en session
-    //     List<RequestPFEDTO> pfes = pfeService.readExcel(
-    //             toMultipartFile(bytes, file.getOriginalFilename()));
-    //     session.setAttribute("pfes", pfes);
+        // =========================
+        // FLAGS EXPORTS
+        // =========================
+        boolean exportEncadrantsOk =
+                session.getAttribute("exportEncadrantsOk") != null;
 
-    //     // 4. Importer les salles (feuille "salles") → en BDD
-    //     salleService.importFromExcel(
-    //             new java.io.ByteArrayInputStream(bytes));
+        boolean exportJurysOk =
+                session.getAttribute("exportJurysOk") != null;
 
-    //     // 5. Lire la date de début (feuille "jours_soutenances") → en session
-    //     java.time.LocalDate dateDebut = salleService.importDateDebut(
-    //             new java.io.ByteArrayInputStream(bytes));
-    //     session.setAttribute("dateDebut", dateDebut);
+        boolean exportSoutenancesOk =
+                session.getAttribute("exportSoutenancesOk") != null;
 
-    //     return "upload2";
-    // }
+        // =========================
+        // DATA SESSION
+        // =========================
+        Long versionId = (Long) session.getAttribute("versionId");
 
-    // /** Crée un MultipartFile en mémoire à partir des bytes bruts. */
-    // private MultipartFile toMultipartFile(byte[] bytes, String filename) {
-    //     return new org.springframework.mock.web.MockMultipartFile(
-    //             "file", filename,
-    //             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //             bytes
-    //     );
-    // }
+        LocalDate dateDebut =
+                (LocalDate) session.getAttribute("dateDebut");
+
+        // =========================
+        // MODEL
+        // =========================
+        model.addAttribute("etape1Ok", etape1Ok);
+        model.addAttribute("etape2Ok", etape2Ok);
+        model.addAttribute("etape3Ok", etape3Ok);
+        model.addAttribute("etape4Ok", etape4Ok);
+        model.addAttribute("etape5Ok", etape5Ok);
+
+        model.addAttribute("exportEncadrantsOk", exportEncadrantsOk);
+        model.addAttribute("exportJurysOk", exportJurysOk);
+        model.addAttribute("exportSoutenancesOk", exportSoutenancesOk);
+
+        model.addAttribute("versionId", versionId);
+        model.addAttribute("dateDebut", dateDebut);
+
+        return "upload";
+    }
+
+
+    @PostMapping("/upload")
+    public String uploadFile(
+            @RequestParam("file") MultipartFile file,
+            HttpSession session
+    ) {
+
+        try {
+
+
+            if (file.isEmpty()) {
+                session.setAttribute(
+                        "uploadError",
+                        "Veuillez sélectionner un fichier Excel."
+                );
+
+                return "redirect:/home";
+            }
+
+            // =========================
+            // NOUVELLE VERSION
+            // =========================
+            ImportVersion version = versionService.addVersion();
+
+            // =========================
+            // ANCIENNE LOGIQUE IMPORT
+            // =========================
+            ResponseUploadDTO dto =
+                    uploadService.importSheets(file);
+
+
+            XSSFWorkbook workbook =
+                    new XSSFWorkbook(file.getInputStream());
+
+            LocalDate dateDebut =
+                    salleService.importDateDebut(
+                            workbook.getSheet("jours_soutenances")
+                    );
+
+            workbook.close();
+
+            resetWorkflow(session);
+
+
+            session.setAttribute("etape1", true);
+
+            // priorité à dto sinon version
+            if (dto != null && dto.versionId() != null) {
+                session.setAttribute(
+                        "versionId",
+                        dto.versionId()
+                );
+            } else {
+                session.setAttribute(
+                        "versionId",
+                        version.getId()
+                );
+            }
+
+            // priorité dto sinon excel
+            if (dto != null && dto.dateDebut() != null) {
+                session.setAttribute(
+                        "dateDebut",
+                        dto.dateDebut()
+                );
+            } else {
+                session.setAttribute(
+                        "dateDebut",
+                        dateDebut
+                );
+            }
+
+            session.setAttribute(
+                    "uploadSuccess",
+                    "Fichier importé avec succès."
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            session.setAttribute(
+                    "uploadError",
+                    "Erreur lors de l'import : " + e.getMessage()
+            );
+
+            return "redirect:/home";
+        }
+
+        return "redirect:/home";
+    }
+
+
+    private void resetWorkflow(HttpSession session) {
+
+        // étapes
+        session.removeAttribute("etape1");
+        session.removeAttribute("etape2");
+        session.removeAttribute("etape3");
+        session.removeAttribute("etape4");
+        session.removeAttribute("etape5");
+
+        // exports
+        session.removeAttribute("exportEncadrantsOk");
+        session.removeAttribute("exportJurysOk");
+        session.removeAttribute("exportSoutenancesOk");
+
+        // messages
+        session.removeAttribute("uploadError");
+        session.removeAttribute("uploadSuccess");
+    }
 }

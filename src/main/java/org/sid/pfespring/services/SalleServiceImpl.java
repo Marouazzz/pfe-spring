@@ -12,7 +12,7 @@ import org.sid.pfespring.repository.*;
 import org.sid.pfespring.utils.ExcelTheme;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -343,7 +343,7 @@ public class SalleServiceImpl
     //  EXPORT EXCEL
     // ══════════════════════════════════════════════════════════════
     @Override
-    public byte[] exportPlanningExcel(Long versionId) throws Exception {
+    public byte[] exportPlanningExcel(Long versionId) throws IOException {
         ImportVersion version = versionRepository.findById(versionId).get();
         List<Soutenance> soutenances = soutenanceRepository
                 .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
