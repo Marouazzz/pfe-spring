@@ -10,6 +10,7 @@ import org.sid.pfespring.mapper.SoutenanceMapper;
 import org.sid.pfespring.model.*;
 import org.sid.pfespring.repository.*;
 import org.sid.pfespring.utils.ExcelTheme;
+import org.sid.pfespring.utils.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
@@ -731,4 +732,12 @@ public class SalleServiceImpl
         if (jury.getProf2()     != null) ids.add(jury.getProf2().getId());
         return ids;
     }
+
+    @Override
+        public byte[] exportPlanningPDF(Long versionId) throws IOException {
+        ImportVersion version = versionRepository.findById(versionId).get();
+        List<Soutenance> soutenances = soutenanceRepository
+                .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
+        return PDFGenerator.exportPlanningPDF(soutenances);
+        }
 }

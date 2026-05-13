@@ -12,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -52,7 +52,7 @@ public class JuryController {
     public String affecterJury(HttpSession session) {
         if (session.getAttribute("etape1") == null ||
                 session.getAttribute("etape2") == null) {
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
+            throw new RuntimeException("Vous devez compléter les étapes précédentes");
         }
         Long id = (Long) session.getAttribute("versionId");
         juryService.affecterJury(id);
@@ -68,17 +68,28 @@ public class JuryController {
     }
 
 
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportJurys(HttpSession session) throws IOException {
+    @GetMapping("/export/{format}")
+    public ResponseEntity<byte[]> exportJurys(@PathVariable String format,HttpSession session) throws IOException {
         Long id = (Long) session.getAttribute("versionId");
         if (id == null || session.getAttribute("exportJurysOk") == null) {
-            return ResponseEntity.badRequest().build();
+            throw new RuntimeException("Assurez-vous que vous avez bien effectuer l'affectation des Jurys");
         }
         int annee = Year.now().getValue();
-        byte[] fichier = juryService.exportJuryExcel(id);
+        byte[] fichier; 
+        String extension  = switch(format){
+            case "excel" -> {
+            fichier = juryService.exportJuryExcel(id);
+            yield ".xlsx";
+        }
+        case "pdf" -> {
+            fichier = juryService.exportJuryPDF(id);
+            yield ".pdf";
+            }
+        default -> throw new IllegalArgumentException("Cette format est non supporte pas notre systeme.Essayez d'exporter les PFE sous les format suivanrs :\n PDF\nExcel");
+        };
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=jury_affectations_" + annee + ".xlsx")
+                        "attachment; filename=jury_affectations_" + annee + extension)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(fichier);
     }

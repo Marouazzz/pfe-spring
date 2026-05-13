@@ -34,6 +34,7 @@ public interface SalleService{
      * Génère le fichier Excel du planning trié.
      */
     byte[] exportPlanningExcel(Long versionId) throws IOException;
+    byte[] exportPlanningPDF(Long versionId) throws IOException;
 
     List<String> detecterAnomalies(List<Soutenance> soutenances);
 }

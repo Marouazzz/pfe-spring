@@ -99,5 +99,11 @@ public class GlobalExceptionHandler {
         ra.addAttribute("message", "Erreur technique : " + e.getMessage());
         return "redirect:/erreur";
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public String handleArgumentException(IllegalArgumentException e ,RedirectAttributes ra){
+        ra.addAttribute("message",e.getMessage());
+        return "redirect:/erreur";
+    }
 }
 

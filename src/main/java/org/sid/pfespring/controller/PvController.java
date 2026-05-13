@@ -133,7 +133,7 @@ public class PvController {
     public Object downloadPVs(HttpSession session) throws IOException {
         Long id = (Long) session.getAttribute("versionId");
         if (id == null || session.getAttribute("pvGeneres") == null) {
-            return "redirect:/erreur?message=Vous devez d'abord générer les PV";
+            throw new RuntimeException("Vous devez d'abord générer les PV");
         }
 
         Path root = Paths.get(rootFolder);

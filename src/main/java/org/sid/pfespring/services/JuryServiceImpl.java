@@ -38,6 +38,7 @@ import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.repository.SoutenanceRepository;
 import org.sid.pfespring.utils.ExcelTheme;
+import org.sid.pfespring.utils.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -230,7 +231,8 @@ public class JuryServiceImpl
         if (fallback != null) chargeParProf.merge(fallback.getId(), 1, Integer::sum);
         return fallback;
     }
-    @Transactional
+
+
     @Override
     public byte[] exportJuryExcel(Long id) throws IOException {
         ImportVersion current_version = versrepository.findById(id).get();
@@ -411,6 +413,14 @@ public class JuryServiceImpl
         return style;
     }
 
+    
+
+    @Override
+    public byte[] exportJuryPDF(Long id) throws IOException {
+        ImportVersion current_version = versrepository.findById(id).get();
+        List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
+        return PDFGenerator.exportJuryPDF(jurys);
+    }
     @Override
         public void genererPV(Long id) {
         ImportVersion version  = versrepository.findById(id).get();

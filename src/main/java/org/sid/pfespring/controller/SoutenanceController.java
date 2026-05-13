@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,7 +67,7 @@ public class SoutenanceController {
         if (session.getAttribute("etape1") == null ||
                 session.getAttribute("etape2") == null ||
                 session.getAttribute("etape3") == null) {
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
+            throw new RuntimeException("Vous devez compléter les étapes précédentes");
         }
         Long id = (Long) session.getAttribute("versionId");
         LocalDate dateDebut = (LocalDate) session.getAttribute("dateDebut");
@@ -80,17 +81,28 @@ public class SoutenanceController {
     }
 
 
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportPlanning(HttpSession session) throws Exception {
+    @GetMapping("/export/{format}")
+    public ResponseEntity<byte[]> exportPlanning(@PathVariable String format,HttpSession session) throws Exception {
         Long id = (Long) session.getAttribute("versionId");
         if (id == null || session.getAttribute("exportSoutenancesOk") == null) {
             return ResponseEntity.badRequest().build();
         }
         int annee = Year.now().getValue();
-        byte[] excel = salleService.exportPlanningExcel(id);
+        byte[] excel;
+        String extension  = switch(format){
+            case "excel" -> {
+            excel = salleService.exportPlanningExcel(id);
+            yield ".xlsx";
+        }
+        case "pdf" -> {
+                excel = salleService.exportPlanningPDF(id);
+                yield ".pdf";
+            }
+        default -> throw new IllegalArgumentException("Cette format est non supporte pas notre systeme.Essayez d'exporter les PFE sous les format suivanrs :\n PDF\nExcel");
+        };
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=planning_soutenances_" + annee + ".xlsx")
+                        "attachment; filename=planning_soutenances_" + annee + extension)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excel);
     }

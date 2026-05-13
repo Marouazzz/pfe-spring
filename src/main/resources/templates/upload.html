@@ -77,10 +77,16 @@
                 </div>
                 <div class="step-right">
                     <th:block th:if="${exportEncadrantsOk}">
-                        <a th:href="@{/pfes/export}" class="excel-link">
+                        <a th:href="@{/pfes/export/excel}" class="excel-link">
                             <button type="button" class="excel-btn">
                                 <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
                                 Excel
+                            </button>
+                        </a>
+                        <a th:href="@{/pfes/export/pdf}" class="excel-link">
+                            <button type="button" class="pdf-btn">
+                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
+                                PDF
                             </button>
                         </a>
                     </th:block>
@@ -120,10 +126,16 @@
                 </div>
                 <div class="step-right">
                     <th:block th:if="${exportJurysOk}">
-                        <a th:href="@{/jurys/export}" class="excel-link">
+                        <a th:href="@{/jurys/export/excel}" class="excel-link">
                             <button type="button" class="excel-btn">
                                 <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
                                 Excel
+                            </button>
+                        </a>
+                        <a th:href="@{/jurys/export/pdf}" class="excel-link">
+                            <button type="button" class="pdf-btn">
+                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
+                                PDF
                             </button>
                         </a>
                     </th:block>
@@ -163,10 +175,16 @@
                 </div>
                 <div class="step-right">
                     <th:block th:if="${exportSoutenancesOk}">
-                        <a th:href="@{/soutenances/export}" class="excel-link">
+                        <a th:href="@{/soutenances/export/excel}" class="excel-link">
                             <button type="button" class="excel-btn">
                                 <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
                                 Excel
+                            </button>
+                        </a>
+                        <a th:href="@{/soutenances/export/pdf}" class="excel-link">
+                            <button type="button" class="pdf-btn">
+                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
+                                PDF
                             </button>
                         </a>
                     </th:block>

@@ -23,6 +23,7 @@
     --bg-locked:  #f5f6f6;
     --bg-done:    #e8f4f4;
     --bg-active:  #f0f9f9;
+    --bg-peige: #e3e2c3;
 }
 
 /* ═══════════════════════════════════
@@ -277,7 +278,12 @@ nav a.active {
 }
 
 .step-left  { display: flex; flex-direction: column; gap: 8px; }
-.step-right { display: flex; align-items: center; }
+.step-right { 
+    width: 35%;
+    display: flex; 
+    align-items: center;
+    justify-content: space-between;
+ }
 
 /* ═══════════════════════════════════
    UPLOAD FORM
@@ -359,9 +365,7 @@ button {
 ═══════════════════════════════════ */
 .excel-link { text-decoration: none; }
 
-.excel-btn, .zip-btn {
-    background: var(--rouge-brique-hover);
-    color: var(--blanc-casse);
+.excel-btn, .zip-btn, .pdf-btn{
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 13px;
@@ -374,8 +378,22 @@ button {
     border: none;
     transition: background 0.18s, transform 0.18s;
 }
-
-.excel-btn .excel-icon {
+.excel-btn,.zip-btn {
+    background: var(--rouge-brique-hover);
+    color: var(--blanc-casse);
+}
+.pdf-btn {
+    background: var(--bg-peige);
+}
+.pdf-btn:hover {
+    background-color: var(--rouge-brique);
+    color: #c8c8c6;
+    transform: translateY(-1px);
+}
+.pdf-icon:hover{
+    filter: brightness(0) invert(1);
+}
+.excel-btn .excel-icon,.zip-btn .excel-icon {
     /* Ce filtre transforme le noir/couleur en blanc pur */
     filter: brightness(0) invert(1);
 }
@@ -386,7 +404,7 @@ button {
     transform: translateY(-1px);
 }
 
-.excel-icon { width: 16px; height: 16px; }
+.excel-icon,.pdf-icon { width: 16px; height: 16px; }
 
 /* ═══════════════════════════════════
    WARNING MESSAGE

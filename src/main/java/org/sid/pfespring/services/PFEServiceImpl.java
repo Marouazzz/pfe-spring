@@ -33,6 +33,7 @@ import org.sid.pfespring.repository.ImportVersionRepository;
 import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.utils.ExcelGenerator;
+import org.sid.pfespring.utils.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -225,9 +226,9 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
         encadrants.forEach(fsService::createPVFolder);
     }
 
-    @Transactional
+
     @Override
-    public byte[] exportPFEAffectation(Long id) throws IOException {
+    public byte[] exportPFEExcel(Long id) throws IOException {
         ImportVersion current_version = versionrepo.findById(id).get();
         List<Encadrant> encdrant = encadrantrepo.findByVersion(current_version);
         Map<String, Map<Long, String>> affectations = encdrant.stream()
@@ -246,6 +247,27 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                                 ,(map1, map2) -> { map1.putAll(map2); return map1; }
                         ));
         return ExcelGenerator.exportPFEAffectationSheet(affectations);
+    }
+    @Override
+    public byte[] exportPFEPDF(Long id) throws IOException {
+        ImportVersion current_version = versionrepo.findById(id).get();
+        List<Encadrant> encdrant = encadrantrepo.findByVersion(current_version);
+        Map<String, Map<Long, String>> affectations = encdrant.stream()
+                .collect(
+                        Collectors.toMap(
+                                e->e.getProf().toString(),
+                                e -> e.getPfes().stream()
+                                        .collect(
+                                                Collectors.toMap(
+                                                        PFE::getId,
+                                                        pfe -> pfe.getEtudiants().stream()
+                                                                .map(Etudiant::toString)
+                                                                .collect(Collectors.joining(", "))
+                                                )
+                                        )
+                                ,(map1, map2) -> { map1.putAll(map2); return map1; }
+                        ));
+        return PDFGenerator.exportAffectationPDF(affectations);
     }
 
 
