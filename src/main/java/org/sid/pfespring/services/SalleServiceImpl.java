@@ -26,9 +26,9 @@ public class SalleServiceImpl
         extends AbstractService<Salle, RequestSalleDTO, ResponseSalleDTO>
         implements SalleService {
 
-    // ══════════════════════════════════════════════════════════════
+
     //  CONSTANTES MÉTIER
-    // ══════════════════════════════════════════════════════════════
+
     private static final LocalTime MATIN_DEBUT  = LocalTime.of(9,  0);
     private static final LocalTime MATIN_FIN    = LocalTime.of(12, 0);
     private static final LocalTime APMIDI_DEBUT = LocalTime.of(14, 0);
@@ -36,8 +36,7 @@ public class SalleServiceImpl
     private static final int DUREE_MIN       = 60;
     private static final int REPOS_MIN       = 60;
     private static final int MAX_JOURS_CAL   = 120;
-    private static final int ENCADREMENT_MIN = 3;
-    private static final int ENCADREMENT_MAX = 4;
+
 
     private final SalleRepository      salleRepository;
     private final SoutenanceRepository soutenanceRepository;
@@ -61,9 +60,7 @@ public class SalleServiceImpl
         this.soutenanceMapper     = soutenanceMapper;
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  GÉNÉRATION DES CRÉNEAUX
-    // ══════════════════════════════════════════════════════════════
     private List<LocalTime> genererCreneauxJour() {
         List<LocalTime> creneaux = new ArrayList<>();
         for (LocalTime t = MATIN_DEBUT; !t.plusMinutes(DUREE_MIN).isAfter(MATIN_FIN);
@@ -73,9 +70,7 @@ public class SalleServiceImpl
         return Collections.unmodifiableList(creneaux);
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  STRUCTURE MÉMOIRE INTERNE
-    // ══════════════════════════════════════════════════════════════
     private static class SlotMemoire {
         final long juryId, salleId;
         final LocalDate date;
@@ -90,9 +85,7 @@ public class SalleServiceImpl
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  ALGORITHME PRINCIPAL DE PLANIFICATION
-    // ══════════════════════════════════════════════════════════════
     @Override
     @Transactional
     public List<ResponseSoutenanceDTO> affecterSalles(LocalDate dateDebut,Long id) {
@@ -205,9 +198,7 @@ public class SalleServiceImpl
         return sauvegardees.stream().map(soutenanceMapper::toResponse).toList();
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  SÉLECTION DU MEILLEUR JURY
-    // ══════════════════════════════════════════════════════════════
     private Jury trouverMeilleurJury(List<Jury> remaining,
                                      LocalTime debut, LocalTime fin,
                                      List<SlotMemoire> planningJour,
@@ -239,39 +230,10 @@ public class SalleServiceImpl
         return true;
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  DÉTECTION DES ANOMALIES
-    // ══════════════════════════════════════════════════════════════
     public List<String> detecterAnomalies(List<Soutenance> soutenances) {
         List<String> anomalies = new ArrayList<>();
 
-        // ⑧ Répartition encadrements
-        Map<Long, Long> nbParEncadrant = soutenances.stream()
-                .filter(s -> s.getJury().getEncadrant() != null)
-                .collect(Collectors.groupingBy(
-                        s -> s.getJury().getEncadrant().getId(), Collectors.counting()));
-
-        if (!nbParEncadrant.isEmpty()) {
-            double moyenne = nbParEncadrant.values().stream()
-                    .mapToLong(Long::longValue).average().orElse(0);
-            if (moyenne < ENCADREMENT_MIN || moyenne > ENCADREMENT_MAX)
-                anomalies.add(String.format(
-                        "[ENCADREMENT] Moyenne = %.1f étudiant(s)/encadrant (cible : %d–%d)",
-                        moyenne, ENCADREMENT_MIN, ENCADREMENT_MAX));
-            soutenances.stream()
-                    .filter(s -> s.getJury().getEncadrant() != null)
-                    .collect(Collectors.toMap(
-                            s -> s.getJury().getEncadrant(),
-                            s -> nbParEncadrant.get(s.getJury().getEncadrant().getId()),
-                            (a, b) -> a))
-                    .forEach((enc, nb) -> {
-                        if (nb < ENCADREMENT_MIN || nb > ENCADREMENT_MAX)
-                            anomalies.add(String.format(
-                                    "[ENCADREMENT] '%s %s' encadre %d étudiant(s) (cible : %d–%d)",
-                                    enc.getNom(), enc.getPrenom(), nb,
-                                    ENCADREMENT_MIN, ENCADREMENT_MAX));
-                    });
-        }
 
         for (int i = 0; i < soutenances.size(); i++) {
             Soutenance s1 = soutenances.get(i);
@@ -340,9 +302,7 @@ public class SalleServiceImpl
         return anomalies;
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  EXPORT EXCEL
-    // ══════════════════════════════════════════════════════════════
     @Override
     public byte[] exportPlanningExcel(Long versionId) throws IOException {
         ImportVersion version = versionRepository.findById(versionId).get();
@@ -394,9 +354,7 @@ public class SalleServiceImpl
         return p.getNom() + " " + p.getPrenom();
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  FEUILLE PLANNING
-    // ══════════════════════════════════════════════════════════════
     private void ecrireFeuillePlanning(XSSFWorkbook wb,
                                        List<Soutenance> soutenances,
                                        Map<String, String> profColorMap,
@@ -476,9 +434,7 @@ public class SalleServiceImpl
         sheet.createFreezePane(0, 1);
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  FEUILLE LÉGENDE
-    // ══════════════════════════════════════════════════════════════
     private void ecrireFeuilleLegend(XSSFWorkbook wb,
                                      Map<String, String> profColorMap,
                                      Map<String, String> dateColorMap) {
@@ -547,9 +503,7 @@ public class SalleServiceImpl
         return r != null ? r : sheet.createRow(index);
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  FEUILLE ANOMALIES
-    // ══════════════════════════════════════════════════════════════
     private void ecrireFeuilleAnomalies(XSSFWorkbook wb, List<String> anomalies) {
         XSSFSheet     sheet = wb.createSheet("Anomalies");
         XSSFCellStyle hdr   = buildHeaderStyle(wb);
@@ -574,9 +528,7 @@ public class SalleServiceImpl
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  IMPORT EXCEL — SALLES
-    // ══════════════════════════════════════════════════════════════
     @Transactional
     @Override
     public List<ResponseSalleDTO> importFromExcel(Sheet sheet,ImportVersion version)  {
@@ -597,9 +549,7 @@ public class SalleServiceImpl
                 .map(salleMapper::toResponse).toList();
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  IMPORT DATE DE DÉBUT
-    // ══════════════════════════════════════════════════════════════
     @Override
     public LocalDate importDateDebut(Sheet sheet)  {
         if (sheet == null)
@@ -618,9 +568,7 @@ public class SalleServiceImpl
         throw new IllegalArgumentException("Aucune date trouvée.");
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  STYLES — délèguent à ExcelTheme pour les couleurs
-    // ══════════════════════════════════════════════════════════════
     private XSSFCellStyle buildHeaderStyle(XSSFWorkbook wb) {
         XSSFCellStyle s = wb.createCellStyle();
         XSSFFont f = wb.createFont();
@@ -681,9 +629,7 @@ public class SalleServiceImpl
         cell.setCellStyle(style);
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  UTILITAIRES TEMPORELS
-    // ══════════════════════════════════════════════════════════════
     private boolean chevauchement(LocalTime d1, LocalTime f1,
                                   LocalTime d2, LocalTime f2) {
         return d1.isBefore(f2) && d2.isBefore(f1);
@@ -702,9 +648,7 @@ public class SalleServiceImpl
                 || (!debut.isBefore(APMIDI_DEBUT) && !fin.isAfter(APMIDI_FIN));
     }
 
-    // ══════════════════════════════════════════════════════════════
     //  UTILITAIRES JURY / PROF
-    // ══════════════════════════════════════════════════════════════
     private Map<Long, Integer> calculerJurysParProf(List<Jury> jurys) {
         Map<Long, Integer> map = new HashMap<>();
         jurys.forEach(j -> getProfs(j).forEach(p -> map.merge(p.getId(), 1, Integer::sum)));

@@ -28,192 +28,206 @@
 
     <div th:if="${!noData}" style="display:contents;">
 
-        <div class="top-row">
+        <!-- ── Ligne stats (pleine largeur) ── -->
+        <div class="stat-grid">
+            <div class="stat-card s1">
+                <div class="val" th:text="${statsGlobales['totalPfes']}">0</div>
+                <div class="lbl">PFEs</div>
+            </div>
+            <div class="stat-card s2">
+                <div class="val" th:text="${statsGlobales['totalProfs']}">0</div>
+                <div class="lbl">Encadrants</div>
+            </div>
+            <div class="stat-card s3">
+                <div class="val" th:text="${statsGlobales['totalSoutenances']}">0</div>
+                <div class="lbl">Soutenances</div>
+            </div>
+            <div class="stat-card s4">
+                <div class="val" th:text="${statsGlobales['totalSalles']}">0</div>
+                <div class="lbl">Salles disponibles</div>
+            </div>
+            <div class="stat-card s5">
+                <div class="val" th:text="${statsGlobales['totalJours']}">0</div>
+                <div class="lbl">Jours de soutenance</div>
+            </div>
+        </div>
 
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="val" th:text="${statsGlobales['totalPfes']}">0</div>
-                    <div class="lbl">PFEs</div>
+        <!-- ── Ligne principale : charts + panneau anomalies ── -->
+        <div class="main-row">
+
+            <!-- Colonne charts -->
+            <div class="charts-col">
+
+                <!-- Chart 1 : barres horizontales scrollable -->
+                <div class="chart-card scrollable">
+                    <h4>PFEs encadrés par professeur</h4>
+                    <div class="scroll-wrapper" id="encWrapper">
+                        <canvas id="chartEncadrants"></canvas>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="val" th:text="${statsGlobales['totalProfs']}">0</div>
-                    <div class="lbl">Encadrants</div>
+
+                <!-- Charts 2 & 3 côte à côte -->
+                <div class="charts-bottom-row">
+                    <div class="chart-card">
+                        <h4>Soutenances par filière</h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="chartFilieres"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Participation aux soutenances par professeur</h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="chartSoutenancesProf"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="val" th:text="${statsGlobales['totalSoutenances']}">0</div>
-                    <div class="lbl">Soutenances</div>
-                </div>
-                <div class="center"></div>
-                <div class="stat-card">
-                    <div class="val" th:text="${statsGlobales['totalSalles']}">0</div>
-                    <div class="lbl">Salles disponibles</div>
-                </div>
-                <div class="stat-card">
-                    <div class="val" th:text="${statsGlobales['totalJours']}">0</div>
-                    <div class="lbl">Jours de soutenance</div>
-                </div>
+
             </div>
 
+            <!-- Panneau conformité (sticky à droite) -->
             <div class="anomaly-panel">
-                <h3>Verification de conformite</h3>
-
-                <div class="anomaly-block">
-                    <h4>Equite d'encadrement
-                        (seuil : <span th:text="${statsGlobales['seuilMin']}">?</span>
-                        – <span th:text="${statsGlobales['seuilMax']}">?</span> PFEs/encadrant)
-                    </h4>
-                    <div th:if="${#lists.isEmpty(anomaliesEncadrement)}" class="ok-msg">
-                        Aucune anomalie detectee.
-                    </div>
-                    <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesEncadrement)}">
-                        <li th:each="a : ${anomaliesEncadrement}"
-                            th:class="${'anom-' + a['type']}"
-                            th:text="${a['prof'] + ' — ' + a['message']}">
-                        </li>
-                    </ul>
+                <div class="anomaly-panel-header">
+                    <h3>Vérification de conformité</h3>
                 </div>
+                <div class="anomaly-scroll">
 
-                <div class="anomaly-block">
-                    <h4>Conformite du planning (chevauchements, repos &lt; 1h)</h4>
-                    <div th:if="${#lists.isEmpty(anomaliesPlanning)}" class="ok-msg">
-                        Aucune anomalie detectee.
+                    <!-- Bloc encadrement -->
+                    <div class="anomaly-block">
+                        <div class="anomaly-block-title">
+                            Équité d'encadrement
+                            <span class="badge"
+                                  th:classappend="${#lists.isEmpty(anomaliesEncadrement)} ? ' badge-ok' : ' badge-warn'"
+                                  th:text="${#lists.isEmpty(anomaliesEncadrement)} ? 'OK' : (${#lists.size(anomaliesEncadrement)} + ' anomalie(s)')">
+                            </span>
+                        </div>
+                        <div class="anomaly-sub">
+                            Seuil :
+                            <span th:text="${statsGlobales['seuilMin']}">?</span> –
+                            <span th:text="${statsGlobales['seuilMax']}">?</span> PFEs/encadrant
+                        </div>
+                        <div th:if="${#lists.isEmpty(anomaliesEncadrement)}" class="ok-msg">
+                            Aucune anomalie détectée.
+                        </div>
+                        <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesEncadrement)}">
+                            <li th:each="a : ${anomaliesEncadrement}"
+                                th:class="${'anom-' + a['type']}"
+                                th:text="${a['prof'] + ' — ' + a['message']}">
+                            </li>
+                        </ul>
                     </div>
-                    <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesPlanning)}">
-                        <li th:each="msg : ${anomaliesPlanning}" class="anom-plan" th:text="${msg}"></li>
-                    </ul>
+
+                    <!-- Bloc planning -->
+                    <div class="anomaly-block">
+                        <div class="anomaly-block-title">
+                            Conformité du planning
+                            <span class="badge"
+                                  th:classappend="${#lists.isEmpty(anomaliesPlanning)} ? ' badge-ok' : ' badge-warn'"
+                                  th:text="${#lists.isEmpty(anomaliesPlanning)} ? 'OK' : (${#lists.size(anomaliesPlanning)} + ' anomalie(s)')">
+                            </span>
+                        </div>
+                        <div class="anomaly-sub">Chevauchements, repos &lt; 1h</div>
+                        <div th:if="${#lists.isEmpty(anomaliesPlanning)}" class="ok-msg">
+                            Aucune anomalie détectée.
+                        </div>
+                        <ul class="anomaly-list" th:if="${!#lists.isEmpty(anomaliesPlanning)}">
+                            <li th:each="msg : ${anomaliesPlanning}"
+                                class="anom-plan"
+                                th:text="${msg}">
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
 
         </div>
-
-        <div class="charts-row">
-            <div class="chart-card scrollable">
-                <h4>PFEs encadrés par professeur</h4>
-                <div class="scroll-wrapper">
-                    <canvas id="chartEncadrants"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h4>Soutenances par filiere</h4>
-                <canvas id="chartFilieres"></canvas>
-            </div>
-            <div class="chart-card">
-                <h4>Participation aux soutenances par professeur</h4>
-                <canvas id="chartSoutenancesProf"></canvas>
-            </div>
-        </div>
-
     </div>
-
 </div>
 
 <script th:if="${!noData}" th:inline="javascript">
     /*<![CDATA[*/
 
-    /* ── Palette centralisée ── */
+    /* ── Palette ── */
     const P = {
-        bleuNuit:         '#0E2931',
-        bleuPetrole:      '#12484C',
-        vertCanard:       '#2B7574',
-        rougeBrique:      '#861211',
-        blancCasse:       '#E2E2E0',
-
-        vertCanardAlpha:  'rgba(43, 117, 116, 0.12)',
-        bleuNuitAlpha:    'rgba(14, 41, 49, 0.12)',
-        rougeBriqueAlpha: 'rgba(134, 18, 17, 0.12)',
-
-        /* Donut : 3 teintes de la palette pour les filières */
-        donut: ['#0E2931', '#12484C', '#861211'],
-
-        /* Axes / grilles */
-        gridColor:  'rgba(14, 41, 49, 0.07)',
-        tickColor:  '#12484C',
-        labelColor: '#12484C',
+        bleuNuit:          '#0E2931',
+        bleuPetrole:       '#12484C',
+        vertCanard:        '#2B7574',
+        rougeBrique:       '#861211',
+        blancCasse:        '#E2E2E0',
+        vertCanardAlpha:   'rgba(43,117,116,0.12)',
+        rougeBriqueAlpha:  'rgba(134,18,17,0.12)',
+        donut:             ['#0E2931','#12484C','#861211'],
+        gridColor:         'rgba(14,41,49,0.07)',
+        tickColor:         '#12484C',
+        labelColor:        '#12484C',
     };
 
-    /* ── Options de base ── */
-    const baseOpts = {
-        responsive: true,
-        maintainAspectRatio: false
-    };
+    Chart.defaults.font.family = "'DM Sans','Segoe UI',Arial,sans-serif";
+    Chart.defaults.color       = P.labelColor;
 
-    /* ── Défaults globaux Chart.js ── */
-    Chart.defaults.font.family  = "'DM Sans', 'Segoe UI', Arial, sans-serif";
-    Chart.defaults.color        = P.labelColor;
+    /* ══════════════════════════════════
+       CHART 1 — Barres horizontales
+       PFEs encadrés par professeur
+    ══════════════════════════════════ */
+    const pfeParEncadrant = /*[[${pfesParEncadrant}]]*/ [];
+    const encData  = [...pfeParEncadrant].sort((a, b) => b.count - a.count);
+    const maxCount = Math.max(...encData.map(e => e.count));
+    const minCount = Math.min(...encData.map(e => e.count));
 
-    // ════════════════════════════════════
-    // GRAPHIQUE 1 — Barres horizontales
-    // PFEs encadrés par professeur
-    // ════════════════════════════════════
-    const pfeParEncadrant       = /*[[${pfesParEncadrant}]]*/ [];
-    const encData               = [...pfeParEncadrant].sort((a, b) => b.count - a.count);
-    const maxCount              = Math.max(...encData.map(e => e.count));
-    const minCount              = Math.min(...encData.map(e => e.count));
-
-    const canvasEnc = document.getElementById('chartEncadrants');
-    canvasEnc.style.height    = 'auto';
-    canvasEnc.style.maxHeight = '100%';
+    const canvasEnc  = document.getElementById('chartEncadrants');
+    const dynHeight  = Math.max(220, encData.length * 26 + 40);
+    canvasEnc.style.height = dynHeight + 'px';
+    canvasEnc.style.width  = '100%';
+    canvasEnc.height       = dynHeight;
 
     if (window.chartEncInstance) window.chartEncInstance.destroy();
-
     window.chartEncInstance = new Chart(canvasEnc, {
         type: 'bar',
         data: {
             labels: encData.map(e => e.nom),
             datasets: [{
                 data: encData.map(e => e.count),
-                /* Max → rouge brique  |  min → vert canard pâle  |  normal → vert canard */
                 backgroundColor: encData.map(e =>
                     e.count === maxCount ? P.rougeBrique :
-                        e.count === minCount ? 'rgba(43,117,116,0.45)' :
+                        e.count === minCount ? 'rgba(43,117,116,0.40)' :
                             P.vertCanard
                 ),
                 borderRadius: 3,
-                barPercentage: 0.78,
+                barPercentage: 0.75,
                 categoryPercentage: 0.85
             }]
         },
         options: {
-            ...baseOpts,
+            responsive: true,
+            maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     backgroundColor: P.bleuNuit,
                     titleColor: P.blancCasse,
-                    bodyColor: P.blancCasse,
-                    callbacks: {
-                        label: ctx => ctx.parsed.x + ' PFE(s)'
-                    }
+                    bodyColor:  P.blancCasse,
+                    callbacks: { label: ctx => ctx.parsed.x + ' PFE(s)' }
                 }
             },
             scales: {
                 x: {
                     beginAtZero: true,
                     grid: { color: P.gridColor },
-                    ticks: {
-                        stepSize: 1,
-                        font: { size: 10 },
-                        color: P.tickColor
-                    }
+                    ticks: { stepSize: 1, font: { size: 10 }, color: P.tickColor }
                 },
                 y: {
                     grid: { display: false },
-                    ticks: {
-                        font: { size: 11 },
-                        color: P.tickColor,
-                        autoSkip: false
-                    }
+                    ticks: { font: { size: 11 }, color: P.tickColor, autoSkip: false }
                 }
             }
         }
     });
 
-    // ════════════════════════════════════
-    // GRAPHIQUE 2 — Donut filières
-    // ════════════════════════════════════
+    /* ══════════════════════════════════
+       CHART 2 — Donut filières
+    ══════════════════════════════════ */
     const soutenancesParFiliereData = /*[[${soutenancesParFiliere}]]*/ [];
-
     new Chart(document.getElementById('chartFilieres'), {
         type: 'doughnut',
         data: {
@@ -227,56 +241,52 @@
             }]
         },
         options: {
-            ...baseOpts,
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: true,
                     position: 'bottom',
-                    labels: {
-                        font: { size: 11 },
-                        boxWidth: 12,
-                        color: P.bleuNuit,
-                        padding: 14
-                    }
+                    labels: { font: { size: 11 }, boxWidth: 12, color: P.bleuNuit, padding: 14 }
                 },
                 tooltip: {
                     backgroundColor: P.bleuNuit,
                     titleColor: P.blancCasse,
-                    bodyColor: P.blancCasse
+                    bodyColor:  P.blancCasse
                 }
             }
         }
     });
 
-    // ════════════════════════════════════
-    // GRAPHIQUE 3 — Line participations
-    // ════════════════════════════════════
+    /* ══════════════════════════════════
+       CHART 3 — Line participations
+    ══════════════════════════════════ */
     const soutenancesParProfData = /*[[${soutenancesParProf}]]*/ [];
     const spData = [...soutenancesParProfData].sort((a, b) => b.count - a.count);
 
     if (window.chartProfInstance) window.chartProfInstance.destroy();
-
     window.chartProfInstance = new Chart(document.getElementById('chartSoutenancesProf'), {
         type: 'line',
         data: {
             labels: spData.map(e => e.nom),
             datasets: [{
                 data: spData.map(e => e.count),
-                borderColor:        P.vertCanard,
-                backgroundColor:    P.vertCanardAlpha,
-                pointBackgroundColor: P.bleuNuit,
-                pointBorderColor:   P.vertCanard,
-                pointBorderWidth:   2,
-                borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
+                borderColor:              P.vertCanard,
+                backgroundColor:          P.vertCanardAlpha,
+                pointBackgroundColor:     P.bleuNuit,
+                pointBorderColor:         P.vertCanard,
+                pointBorderWidth:         2,
+                borderWidth:              2,
+                pointRadius:              4,
+                pointHoverRadius:         6,
                 pointHoverBackgroundColor: P.rougeBrique,
                 fill: true,
                 tension: 0.35
             }]
         },
         options: {
-            ...baseOpts,
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -301,20 +311,14 @@
                 y: {
                     beginAtZero: true,
                     grid: { color: P.gridColor },
-                    ticks: {
-                        stepSize: 1,
-                        font: { size: 10 },
-                        color: P.tickColor
-                    }
+                    ticks: { stepSize: 1, font: { size: 10 }, color: P.tickColor }
                 },
                 x: {
                     ticks: { display: false },
-                    grid: { display: false }
+                    grid:  { display: false }
                 }
             },
-            layout: {
-                padding: { left: 5, right: 5, top: 10, bottom: 20 }
-            }
+            layout: { padding: { left: 5, right: 5, top: 10, bottom: 20 } }
         }
     });
 

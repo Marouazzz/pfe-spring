@@ -82,7 +82,9 @@ public class DashboardController {
         model.addAttribute("soutenancesParProf", etape4 ? dashboardService.soutenancesParProf(versionId) : List.of());
         model.addAttribute("soutenancesParFiliere", etape4 ? dashboardService.soutenancesParFiliere(versionId) : List.of());
         model.addAttribute("anomaliesEncadrement", etape2 ? dashboardService.anomaliesEncadrement(versionId) : List.of());
-        model.addAttribute("anomaliesPlanning", etape4 ? salleService.detecterAnomalies(soutenances) : List.of());
+        model.addAttribute("anomaliesPlanning",
+                etape4 ? salleService.detecterAnomalies(soutenances) : List.of());
+
         return "dashboard";
     }
 }
