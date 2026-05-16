@@ -407,3 +407,14 @@ nav a.active {
     border-left: 3px solid var(--bleu-petrole);
     border-radius: 0 5px 5px 0;
 }
+/* tableau de botrd/*/
+nav a.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+nav a.disabled:hover {
+    background: none !important;
+    color: rgba(226,226,224,0.70) !important;
+}

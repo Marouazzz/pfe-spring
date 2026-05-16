@@ -12,7 +12,13 @@
     <span class="brand">Gestion PFE</span>
     <div>
         <a th:href="@{/home}" class="active">Orchestration de soutenances</a>
-        <a th:href="@{/dashboard}">Tableau de bord</a>
+<!--        <a th:href="@{/dashboard}">Tableau de bord</a>-->
+        <a th:href="${etape4Ok} ? '/dashboard' : '#'"
+           th:classappend="${!etape4Ok} ? 'disabled'"
+           th:title="${!etape4Ok} ? 'Completez la planification avant de passer au tableau de bord' : ''">
+            Tableau de bord
+            <span th:if="${!etape4Ok}">🔒</span>
+        </a>
     </div>
 </nav>
 
