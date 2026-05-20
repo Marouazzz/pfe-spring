@@ -185,7 +185,7 @@
         <!-- Message d'erreur injecté par le backend (Thymeleaf) -->
         <div class="detail" th:if="${message}" th:text="${message}"></div>
         <!-- Fallback param URL -->
-        <div class="detail" th:if="${param.message}" th:text="${param.message}"></div>
+        <!-- <div class="detail" th:if="${param.message}" th:text="${param.message}"></div> -->
 <!--        <div class="detail" th:text="${message} ?: ${param.message}"></div>-->
 
         <a href="/home" class="btn-home">

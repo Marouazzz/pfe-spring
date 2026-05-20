@@ -110,11 +110,6 @@ public class DashboardServiceImpl implements DashboardService {
         Map<String, Long> stats = new HashMap<>();
 
         List<Encadrant> encadrants = encadrantRepo.findByVersionWithPfes(version);
-
-        System.out.println(" ENCADRANTS hahumaaaa " + encadrants.size());
-        for (Encadrant enc : encadrants) {
-            System.out.println(enc.getProf().getNom() + " -> " + enc.getPfes().size() + " PFEs");
-        }
         // Nombre d'encadrants
         stats.put("totalProfs", (long) encadrants.size());
 

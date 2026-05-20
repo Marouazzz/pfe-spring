@@ -1,5 +1,7 @@
 package org.sid.pfespring.controller;
 
+import java.util.List;
+
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Soutenance;
 import org.sid.pfespring.repository.ImportVersionRepository;
@@ -12,8 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/dashboard")

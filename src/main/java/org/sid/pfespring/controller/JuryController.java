@@ -10,9 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -26,27 +26,6 @@ public class JuryController {
         this.juryService = juryService;
     }
 
- /*   @GetMapping("/affectations")
-    public Object affecterJury(@RequestParam("id") Long id, HttpSession session) throws IOException {
-
-        if (session.getAttribute("etape1") == null ||
-                session.getAttribute("etape2") == null) {
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
-        }
-        int annee = Year.now().getValue();
-        juryService.affecterJury(id);
-        session.setAttribute("etape3", true);
-        session.setAttribute("versionId", id);
-        session.removeAttribute("etape4");
-        byte[] fichier = juryService.exportJuryExcel(id);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=jury_affectations_" + annee + ".xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(fichier);
-    }
-
-  */
 
     @PostMapping("/affecter")
     public String affecterJury(HttpSession session) {

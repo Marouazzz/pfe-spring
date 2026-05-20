@@ -47,66 +47,6 @@ public class PvController {
         this.fsService = fSystemService;
     }
 
-    /**
-     * Zippe tous les sous-dossiers qui se terminent par "_v{id}"
-     * et renvoie le ZIP en téléchargement.
-
-    @GetMapping("/download")
-    public Object downloadPVs(@RequestParam("id") Long id, HttpSession session) throws IOException {
-
-        // Sécurité : vérifier que les étapes sont complètes
-        if (session.getAttribute("etape1") == null ||
-                session.getAttribute("etape2") == null ||
-                session.getAttribute("etape3") == null ||
-                session.getAttribute("etape4") == null) {
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
-        }
-        session.setAttribute("etape5", true);
-        Path root = Paths.get(rootFolder);
-        if (!Files.exists(root)) {
-            return ResponseEntity.notFound().build();
-        }
-        this.pFEService.createPVFolder(id);
-        this.juryService.genererPV(id);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            // On parcourt les dossiers du type NomProf_PrenomProf_v{id}
-            Files.list(root)
-                    .filter(Files::isDirectory)
-                    .filter(p -> p.getFileName().toString().endsWith("_v" + id))
-                    .forEach(profDir -> {
-                        try {
-                            Files.list(profDir)
-                                    .filter(f -> f.toString().endsWith(".docx"))
-                                    .forEach(file -> {
-                                        try {
-                                            String zipEntryName = profDir.getFileName() + "/" + file.getFileName();
-                                            zos.putNextEntry(new ZipEntry(zipEntryName));
-                                            zos.write(Files.readAllBytes(file));
-                                            zos.closeEntry();
-                                        } catch (IOException e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    });
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        }
-
-        byte[] zipBytes = baos.toByteArray();
-        if (zipBytes.length == 0) {
-            return ResponseEntity.noContent().build();
-        }
-        fsService.deletePVFolder(id);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=PV_v" + id + ".zip")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(zipBytes);
-    }
-     */
     @PostMapping("/generer")
     public String genererPVs(HttpSession session) throws IOException {
         if (session.getAttribute("etape1") == null ||

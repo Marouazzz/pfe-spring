@@ -28,24 +28,7 @@ public class PFEController{
         this.pFEService = service;
     }
 
-/*    @GetMapping("/affectations")
-    public ResponseEntity<byte[]> affecterProfEtudiants(@RequestParam("id") Long id,HttpSession session) throws IOException {
-        int annee = Year.now().getValue();
-        pFEService.appliquerAffectation(id);
-        session.setAttribute("etape2", true);
-        session.setAttribute("versionId", id);
-        session.removeAttribute("etape3");
-        session.removeAttribute("etape4");
-        session.removeAttribute("etape5");
-        byte [] files = pFEService.exportPFEAffectation(id);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=pfe_affectations_" + annee + ".xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(files);
-    }
 
- */
 @PostMapping("/affecter")
 public String affecterEncadrants(HttpSession session) {
     Long id = (Long) session.getAttribute("versionId");

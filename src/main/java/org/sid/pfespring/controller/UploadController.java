@@ -1,46 +1,7 @@
 package org.sid.pfespring.controller;
-/*
 
 
 import java.io.IOException;
-
-import org.sid.pfespring.dto.ResponseUploadDTO;
-import org.sid.pfespring.services.UploadService;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.servlet.http.HttpSession;
-@Controller
-@RequestMapping("/home")
-public class UploadController {
-
-    private UploadService service;
-
-    public UploadController(UploadService service) {
-        this.service = service;
-    }
-
-    @PostMapping("/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile file,HttpSession session) {
-        ResponseUploadDTO dto = this.service.importSheets(file);      
-        session.setAttribute("etape1", true);
-        session.setAttribute("versionId",dto.versionId());
-        session.setAttribute("dateDebut", dto.dateDebut());  
-        return "upload";
-    }
-    @GetMapping
-    public String welcomePage() {
-        return "upload";
-    }
-
-
-}
-*/
-
 import java.time.LocalDate;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -138,19 +99,11 @@ public class UploadController {
     public String uploadFile(
             @RequestParam("file") MultipartFile file,
             HttpSession session
-    ) {
+    ) throws IOException {
+            if (file.isEmpty()) throw new RuntimeException("Veuillez sélectionner un fichier Excel.");
 
-        try {
-
-
-            if (file.isEmpty()) {
-                session.setAttribute(
-                        "uploadError",
-                        "Veuillez sélectionner un fichier Excel."
-                );
-
-                return "redirect:/home";
-            }
+            String filename = file.getOriginalFilename();
+            if(filename.isEmpty() || !filename.endsWith(".xlsx")) throw new IllegalArgumentException("Essayer d'importer un fichier de type .xlsx");
 
             // =========================
             // NOUVELLE VERSION
@@ -209,19 +162,6 @@ public class UploadController {
                     "uploadSuccess",
                     "Fichier importé avec succès."
             );
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            session.setAttribute(
-                    "uploadError",
-                    "Erreur lors de l'import : " + e.getMessage()
-            );
-
-            return "redirect:/home";
-        }
-
         return "redirect:/home";
     }
 

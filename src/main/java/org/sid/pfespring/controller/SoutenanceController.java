@@ -32,35 +32,6 @@ public class SoutenanceController {
         this.salleService = salleService;
     }
 
-   /* @GetMapping("/planifier")
-    public Object affecterSoutenances(@RequestParam("id") Long id,HttpSession session) throws Exception {
-//used flags
-
-
-        //  Vérification des étapes
-        if (session.getAttribute("etape1") == null ||
-            session.getAttribute("etape2") == null ||
-            session.getAttribute("etape3") == null) {
-
-            return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
-        }
-
-        int annee = Year.now().getValue();
-        LocalDate dateDebut = (LocalDate) session.getAttribute("dateDebut");
-        salleService.affecterSalles(dateDebut,id);
-        session.setAttribute("etape3", true);
-        session.setAttribute("versionId", id);
-        session.removeAttribute("etape4");
-        byte[] excel = salleService.exportPlanningExcel(id);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=planning_soutenances_" + annee + ".xlsx")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(excel);
-    }
-
-    */
 
     @PostMapping("/planifier")
     public String planifierSoutenances(HttpSession session) {
