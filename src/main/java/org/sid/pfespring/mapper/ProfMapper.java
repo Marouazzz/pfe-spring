@@ -7,8 +7,7 @@ import org.sid.pfespring.model.Specialite;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProfMapper
-        extends AbstractMapper<Prof, RequestProfDTO, ResponseProfDTO> {
+public class ProfMapper implements GenericMapper<Prof, RequestProfDTO, ResponseProfDTO> {
 
     @Override
     public Prof toEntity(RequestProfDTO request) {
@@ -18,7 +17,7 @@ public class ProfMapper
                 .specialite(Specialite.valueOf(
                         request.specialite().trim().toUpperCase()
                 ))
-                .maxEtudiants(request.maxEtudiants())
+                .version(request.version())
                 .build();
     }
 
@@ -28,8 +27,7 @@ public class ProfMapper
                 prof.getId(),
                 prof.getNom(),
                 prof.getPrenom(),
-                prof.getSpecialite(),
-                prof.getMaxEtudiants()
+                prof.getSpecialite()
         );
     }
 }

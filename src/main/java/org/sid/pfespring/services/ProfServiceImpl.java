@@ -1,41 +1,52 @@
 package org.sid.pfespring.services;
 
-import jakarta.transaction.Transactional;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.RequestProfDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
+import org.sid.pfespring.exception.ProfImportValidationException;
 import org.sid.pfespring.mapper.ProfMapper;
+import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.repository.ProfRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+
+
 @Service
+@Validated
 public class ProfServiceImpl extends AbstractService<
         Prof,
         RequestProfDTO,
         ResponseProfDTO> implements ProfService {
 
+
+        private Validator validator;
+
     public ProfServiceImpl(ProfRepository repository,
-                           ProfMapper mapper) {
+                           ProfMapper mapper,
+                           Validator validator) {
         super(repository, mapper);
+        this.validator = validator;
     }
+
+    
     @Override
     @Transactional
-    public List<ResponseProfDTO> importFromExcel(MultipartFile file) {
-
-        List<ResponseProfDTO> results = new ArrayList<>();
-
-        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-
-            Sheet sheet = workbook.getSheetAt(0);
+    public void importFromExcel(Sheet sheet,ImportVersion version) {
             DataFormatter formatter = new DataFormatter();
-
+            List <RequestProfDTO> dtos = new ArrayList<>();
+            List<String> errors = new ArrayList<>();
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 Row row = sheet.getRow(i);
@@ -53,31 +64,32 @@ public class ProfServiceImpl extends AbstractService<
                         .replace("Ç", "C")
                         .replace("À", "A");
 
-                String maxEtudiantsStr = formatter.formatCellValue(row.getCell(3)).trim();
-
                 //  Skip lignes vides
                 if (nom.isBlank() || specialite.isBlank()) continue;
-
-                //  Convertir maxEtudiants
-                Integer maxEtudiants = maxEtudiantsStr.isBlank() ? 0 : Integer.parseInt(maxEtudiantsStr);
 
                 //  Créer Request DTO
                 RequestProfDTO request = new RequestProfDTO(
                         nom,
                         prenom,
                         specialite,
-                        maxEtudiants
+                        version
+
                 );
-                //  Utiliser le mapper + repository via service générique
-                ResponseProfDTO saved = this.creer(request);
+                Set<ConstraintViolation<RequestProfDTO>> violations = validator.validate(request);
 
-                results.add(saved);
+                if (!violations.isEmpty()) {
+                        String rowErrors = violations.stream()
+                        .map(v -> v.getPropertyPath() + " : " + v.getMessage())
+                        .collect(Collectors.joining(", "));
+                        errors.add("Ligne " + (i + 1) + " -> " + rowErrors);
+                } 
+                dtos.add(request);
             }
+            if(!errors.isEmpty()){
+                throw new ProfImportValidationException(errors);
+            }
+            List<Prof> profs = dtos.stream().map(mapper::toEntity).toList();
+            repository.saveAll(profs);
 
-        } catch (IOException e) {
-            throw new RuntimeException("Erreur lecture Excel: " + e.getMessage(), e);
-        }
-
-        return results;
     }
 }

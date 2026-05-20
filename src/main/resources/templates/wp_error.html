@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Erreur — Gestion PFE</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bleu-nuit:    #0E2931;
+            --bleu-petrole: #12484C;
+            --vert-canard:  #2B7574;
+            --rouge-brique: #861211;
+            --blanc-casse:  #E2E2E0;
+            --bg-page:      #edf1f3;
+        }
+
+        *, *::before, *::after {
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+            background: var(--bg-page);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Nav ── */
+        nav {
+            background: var(--bleu-nuit);
+            height: 52px;
+            display: flex;
+            align-items: center;
+            padding: 0 36px;
+            border-bottom: 1px solid var(--bleu-petrole);
+            flex-shrink: 0;
+        }
+
+        nav .brand {
+            color: var(--blanc-casse);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── Center content ── */
+        .page {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1.5px solid #dce4e5;
+            border-top: 4px solid var(--rouge-brique);
+            border-radius: 14px;
+            padding: 44px 48px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Icon circle */
+        .icon-wrap {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #fdf0ef;
+            border: 2px solid #e8b4b3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .icon-wrap svg {
+            width: 30px;
+            height: 30px;
+            stroke: var(--rouge-brique);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--bleu-nuit);
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .message {
+            font-size: 13px;
+            color: var(--bleu-petrole);
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        /* Error detail from backend */
+        .detail {
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            color: var(--rouge-brique);
+            background: #fdf0ef;
+            border: 1px solid #e8b4b3;
+            border-left: 3px solid var(--rouge-brique);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 16px 0 28px;
+            text-align: left;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .detail:empty { display: none; }
+
+        /* Button */
+        a.btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            background: var(--bleu-nuit);
+            color: var(--blanc-casse);
+            padding: 11px 26px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.18s, transform 0.18s;
+            letter-spacing: 0.01em;
+        }
+
+        a.btn-home:hover {
+            background: var(--bleu-petrole);
+            transform: translateY(-1px);
+        }
+
+        a.btn-home svg {
+            width: 15px;
+            height: 15px;
+            stroke: var(--blanc-casse);
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <span class="brand">Gestion PFE</span>
+</nav>
+
+<div class="page">
+    <div class="card">
+
+        <div class="icon-wrap">
+            <!-- Triangle warning icon -->
+            <svg viewBox="0 0 24 24">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+        </div>
+
+        <h1>OUPSSS !!! Une erreur est survenue</h1>
+        <p class="message">Nous sommes en train de résoudre ce problème !</p>
+
+        <!-- Message d'erreur injecté par le backend (Thymeleaf) -->
+        <div class="detail" th:if="${message}" th:text="${message}"></div>
+        <!-- Fallback param URL -->
+        <div class="detail" th:if="${param.message}" th:text="${param.message}"></div>
+
+        <a href="/home" class="btn-home">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Retour au workflow
+        </a>
+
+    </div>
+</div>
+
+</body>
+</html>

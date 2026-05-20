@@ -1,23 +1,12 @@
 package org.sid.pfespring.dto;
 
+import org.sid.pfespring.model.ImportVersion;
 
-import lombok.Getter;
-import lombok.Setter;
-/*
-@Getter
-@Setter
-public class RequestProfDTO {
-    private String nom;
-    private String prenom;
-    private String specialite;
-    private int maxEtudiants;
-    private String password;
-
-}*/
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record RequestProfDTO(
-        String nom,
-        String prenom,
-        String specialite,
-        Integer maxEtudiants
-) {}
+@NotBlank(message="Le nom est obligatoire") String nom,
+@NotBlank(message="Le prenom est obligatoire") String prenom,
+@NotBlank(message="La specialite est obligatoire") String specialite,
+@NotNull ImportVersion version) {}

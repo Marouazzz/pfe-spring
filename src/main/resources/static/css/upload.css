@@ -1,0 +1,446 @@
+/*@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');*/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+/* ═══════════════════════════════════
+   PALETTE
+═══════════════════════════════════ */
+:root {
+    --bleu-nuit:         #0E2931;
+    --bleu-nuit-hover:   #1a3d48;
+    --bleu-petrole:      #12484C;
+    --bleu-petrole-hover:#1a6166;
+    --vert-canard:       #2B7574;
+    --vert-canard-hover: #3a9a99;
+    --rouge-brique:      #861211;
+    --rouge-brique-hover:#a31817;
+    --blanc-casse:       #E2E2E0;
+    --blanc-casse-dim:   #c8c8c6;
+
+    --bg-page:    #edf1f3;
+    --bg-card:    #ffffff;
+    --bg-locked:  #f5f6f6;
+    --bg-done:    #e8f4f4;
+    --bg-active:  #f0f9f9;
+    --bg-peige: #e3e2c3;
+}
+
+/* ═══════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════ */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+    background: var(--bg-page);
+    color: var(--bleu-nuit);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+}
+
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('../images/background.avif');
+    background-size: cover;
+    background-position: center;
+    opacity:  0.10;        /* ← ajuste entre 0.03 et 0.15 selon le rendu */
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════
+   NAV
+═══════════════════════════════════ */
+nav {
+    background: var(--vert-canard);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+    border-bottom: 1px solid var(--vert-canard);
+}
+nav, .page {
+    position: relative;
+    z-index: 1;
+}
+nav .brand {
+    color: var(--blanc-casse);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+nav a {
+    color: rgba(226, 226, 224, 0.7);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+
+nav a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--blanc-casse);
+}
+
+nav a.active {
+    background: var(--bleu-petrole);
+    color: var(--blanc-casse);
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════
+   PAGE LAYOUT
+═══════════════════════════════════ */
+.page {
+    min-height: calc(100vh - 52px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 44px 20px 60px;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Titre principal */
+.page-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--rouge-brique-hover);
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: -0.03em;
+}
+
+/* Sous-titre */
+.page-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--vert-canard);
+    text-align: center;
+    margin-bottom: 38px;
+    line-height: 1.6;
+}
+
+/* Titres des steps */
+.step h3 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bleu-nuit);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+/* Step actif */
+.step--active h3 {
+    color: var(--vert-canard);
+}
+
+/* Step complété */
+.step--done h3 {
+    color: var(--bleu-petrole);
+}
+
+/* Step verrouillé */
+.step--locked h3 {
+    color: #7b8790;
+}
+
+
+/* ═══════════════════════════════════
+   STEP CARD — BASE
+═══════════════════════════════════ */
+.step {
+    background: var(--bg-card);
+    border: 1.5px solid #dce4e5;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    transition: box-shadow 0.2s, border-color 0.2s, opacity 0.2s;
+    position: relative;
+}
+
+/* ── ÉTAT : VERROUILLÉ ── */
+.step.step--locked {
+    opacity: 0.5;
+    pointer-events: none;
+    background: var(--bg-locked);
+    border-color: #d0d5d6;
+}
+
+/* ── ÉTAT : COMPLÉTÉ ── */
+.step.step--done {
+    background: var(--bg-done);
+    border-color: var(--bleu-petrole);
+}
+
+/* ── ÉTAT : ACTIF ── */
+.step.step--active {
+    background: var(--bg-active);
+    border-color: var(--vert-canard);
+    box-shadow: 0 0 0 3px rgba(43, 117, 116, 0.10);
+}
+
+/* ═══════════════════════════════════
+   STEP HEADER
+═══════════════════════════════════ */
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--blanc-casse-dim);
+    color: var(--rouge-brique);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.step--done   .step-number { background: var(--bleu-petrole); color: var(--blanc-casse); }
+.step--active .step-number { background: var(--rouge-brique);  color: var(--blanc-casse); }
+.step--locked .step-number { background: #c8cfd0;             color: #9ca3af; }
+
+.step h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bleu-nuit);
+    flex: 1;
+    letter-spacing: -0.01em;
+}
+
+.step--locked h3 { color: #6b7280; }
+
+/* ═══════════════════════════════════
+   BADGES
+═══════════════════════════════════ */
+.badge-ok {
+    background: #cce5e5;
+    color: var(--bleu-petrole);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #9dcfcf;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+
+.badge-locked {
+    background: var(--blanc-casse);
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--blanc-casse-dim);
+    white-space: nowrap;
+}
+
+/* ═══════════════════════════════════
+   STEP CONTENT
+═══════════════════════════════════ */
+.step-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.step-left  { display: flex; flex-direction: column; gap: 8px; }
+.step-right { 
+    width: 35%;
+    display: flex; 
+    align-items: center;
+    justify-content: space-between;
+ }
+
+/* ═══════════════════════════════════
+   UPLOAD FORM
+═══════════════════════════════════ */
+.upload-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+input[type="file"] {
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--bleu-petrole);
+    background: #f5f8f8;
+    border: 1px solid #c4d4d5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    flex: 1;
+    min-width: 180px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+input[type="file"]:hover {
+    background: #ffffff;
+    border-color: var(--vert-canard);
+}
+
+/* ═══════════════════════════════════
+   BUTTONS — BASE
+═══════════════════════════════════ */
+button {
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.01em;
+}
+
+/* Importer */
+.btn-primary { background: var(--bleu-nuit); color: var(--blanc-casse); }
+.btn-primary:hover { background: var(--bleu-nuit-hover); transform: translateY(-1px); }
+
+/* Affecter / Planifier / Générer */
+.btn-success { background: var(--vert-canard); color: var(--blanc-casse); }
+.btn-success:hover { background: var(--vert-canard-hover); transform: translateY(-1px); }
+
+/* Erreur / Danger */
+.btn-danger { background: var(--rouge-brique); color: var(--blanc-casse); }
+.btn-danger:hover { background: var(--rouge-brique-hover); transform: translateY(-1px); }
+
+/* Ghost / Outline */
+.btn-ghost {
+    background: transparent;
+    color: var(--bleu-petrole);
+    border: 1.5px solid var(--bleu-petrole);
+}
+.btn-ghost:hover { background: rgba(18,72,76,0.06); }
+
+/* Désactivé */
+.btn-disabled {
+    background: var(--blanc-casse);
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+.btn-disabled:hover { transform: none; }
+
+/* ═══════════════════════════════════
+   EXPORT BUTTONS (Excel / ZIP)
+═══════════════════════════════════ */
+.excel-link { text-decoration: none; }
+
+.excel-btn, .zip-btn, .pdf-btn{
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.18s, transform 0.18s;
+}
+.excel-btn,.zip-btn {
+    background: var(--rouge-brique-hover);
+    color: var(--blanc-casse);
+}
+.pdf-btn {
+    background: var(--bg-peige);
+}
+.pdf-btn:hover {
+    background-color: var(--rouge-brique);
+    color: #c8c8c6;
+    transform: translateY(-1px);
+}
+.pdf-icon:hover{
+    filter: brightness(0) invert(1);
+}
+.excel-btn .excel-icon,.zip-btn .excel-icon {
+    /* Ce filtre transforme le noir/couleur en blanc pur */
+    filter: brightness(0) invert(1);
+}
+
+
+.excel-btn:hover, .zip-btn:hover {
+    background: var(--bleu-nuit);
+    transform: translateY(-1px);
+}
+
+.excel-icon,.pdf-icon { width: 16px; height: 16px; }
+
+/* ═══════════════════════════════════
+   WARNING MESSAGE
+═══════════════════════════════════ */
+.msg-warn {
+    font-size: 12px;
+    font-weight: 500;
+    color: #5c1a1a;
+    background: #fdf0ef;
+    border: 1px solid #e8b4b3;
+    border-left: 3px solid var(--rouge-brique);
+    border-radius: 8px;
+    padding: 8px 12px;
+    line-height: 1.5;
+}
+
+/* ═══════════════════════════════════
+   CONNECTOR (optionnel)
+═══════════════════════════════════ */
+.step-connector {
+    width: 2px;
+    height: 14px;
+    background: var(--blanc-casse-dim);
+    margin: 0 auto -7px auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
+@media (max-width: 500px) {
+    nav { padding: 0 16px; }
+    .step { padding: 16px 18px; }
+    .upload-form { flex-direction: column; align-items: stretch; }
+    input[type="file"] { width: 100%; }
+    button { width: 100%; justify-content: center; }
+    .excel-btn, .zip-btn { width: 100%; justify-content: center; }
+}

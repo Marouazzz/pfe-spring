@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class EtudiantMapper
-        extends AbstractMapper<Etudiant, RequestEtudiantDTO, ResponseEtudiantDTO> {
+        implements GenericMapper<Etudiant, RequestEtudiantDTO, ResponseEtudiantDTO> {
 
     @Override
     public Etudiant toEntity(RequestEtudiantDTO request) {
@@ -19,6 +19,7 @@ public class EtudiantMapper
                 .filiere(Filiere.valueOf(
                         request.filiere().trim().toUpperCase()
                 ))
+                .version(request.version())
                 .build();
     }
 
