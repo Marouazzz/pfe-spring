@@ -41,16 +41,16 @@ public class DashboardController {
         boolean etape4 = session.getAttribute("etape4") != null;
 
         if (versionId == null) {
-            return redirect();
+            redirect();
         }
 
         ImportVersion version = versionRepository.findById(versionId).orElse(null);
         if (version == null) {
-            return redirect();
+            redirect();
         }
 
         if (!etape4) {
-            return redirect();
+            redirect();
         }
 
         List<Soutenance> soutenances = soutenanceRepository
@@ -67,7 +67,7 @@ public class DashboardController {
         return "dashboard";
     }
 
-    private String redirect() {
-        return "redirect:/erreur?message=Vous+devez+effectuer+la+planification+des+soutenances+avant+de+consulter+le+tableau+de+bord";
+    private void redirect() {
+        throw new RuntimeException("Vous devez effectuer la planification des soutenances avant de consulter le tableau de bord");
     }
 }
