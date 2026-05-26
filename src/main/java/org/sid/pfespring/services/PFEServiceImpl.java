@@ -3,9 +3,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,7 @@ import org.sid.pfespring.model.Encadrant;
 import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.model.Filiere;
 import org.sid.pfespring.model.ImportVersion;
+import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
 import org.sid.pfespring.model.Specialite;
@@ -115,7 +120,6 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
     }
 
     private List<RequestPFEDTO> readExcel(Sheet sheet){
-        // Validation Exception will be handled later
         List<RequestPFEDTO> sujetsPfe = new ArrayList<>();
         DataFormatter formater = new DataFormatter();
         List<String> errors = new ArrayList();
@@ -132,10 +136,14 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                     .map(s -> s.replace("\u00A0", ""))
                     .map(String::toUpperCase)
                     .collect(Collectors.toSet());
-            String langue = formater.formatCellValue(row.getCell(3)).trim();
-            if (langue.isBlank()) langue = null;
+
+            String rawLangue = formater.formatCellValue(row.getCell(3)).trim();
+            
+            if (rawLangue == null || rawLangue.trim().isEmpty()) {
+                throw new PFEImportValidationException(List.of("Ligne " + (i + 1) + " -> Langue invalide: " + rawLangue));
+            }
             Filiere filiere = Filiere.valueOf(rawFiliere);
-            RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet,filiere,langue);
+            RequestPFEDTO pfedto = new RequestPFEDTO(cnes, sujet,filiere,rawLangue.toUpperCase());
 
             Set<ConstraintViolation<RequestPFEDTO>> violations = validator.validate(pfedto);
             if (!violations.isEmpty()) {
@@ -158,66 +166,110 @@ public class PFEServiceImpl extends AbstractService<PFE, RequestPFEDTO, Response
                 // toList() : returns immutable list
                 // Use collect() :
                 .collect(Collectors.toSet());
-        excelCnes.removeAll(etudiants);
-        return excelCnes;
-    }
-
-
-
-
-    @Override
-    public void appliquerAffectation(Long versionId) {
-        ImportVersion version = versionrepo.findById(versionId).get();
-        // delete link mbin enc et pfe then delete enca
-        ((PFERepository) repository).clearEncadrantByVersion(version);
-        encadrantrepo.deleteByVersion(version);
-        // Charger apres nettoyage → Hibernate a une vue propre
-        List<PFE> pfes = ((PFERepository) repository).findByVersion(version);
-
-        List<Specialite> langues = List.of(Specialite.ANGLAIS, Specialite.FRANCAIS);
-        List<Prof> profs = profrepo.findByVersionAndSpecialiteNotIn(version,langues);
-
-        if (profs.isEmpty())
-            throw new BusinessException("Aucun professeur disponible.");
-
-        // Convert prof to encadrant
-        List<Encadrant> encadrants = profs.stream()
-                .map(
-                        prof -> Encadrant.builder()
-                                .prof(prof)
-                                .pfes(new ArrayList<>())
-                                .version(version)
-                                .build()
-                )
-                .collect(Collectors.toList());
-
-        // Apply shuffle
-        Collections.shuffle(encadrants);
-        Collections.shuffle(pfes);
-
-        // calcule la capacite
-        int capaciteMin = pfes.size() / encadrants.size();
-        int reste = pfes.size() % encadrants.size();
-
-        int index = 0;
-
-        for (Encadrant encadrant : encadrants) {
-
-            int count = capaciteMin + (reste > 0 ? 1 : 0);
-
-            for (int i = 0; i < count && index < pfes.size(); i++) {
-                PFE pfe = pfes.get(index);
-                pfe.setEncadrant(encadrant);
-                pfe.setStatus(Status.CONFIRME);
-                encadrant.getPfes().add(pfe);
-                index++;
+                excelCnes.removeAll(etudiants);
+                return excelCnes;
             }
-            reste--;
-        }
-        // 8. Sauvegarde (important)
-        encadrantrepo.saveAll(encadrants);
-        repository.saveAll(pfes);
+            
+            
+            
+            
+@Override
+@Transactional
+public void appliquerAffectation(Long versionId) {
+
+    ImportVersion version = versionrepo.findById(versionId)
+            .orElseThrow(() -> new BusinessException("Version introuvable"));
+
+    ((PFERepository) repository).clearEncadrantByVersion(version);
+    encadrantrepo.deleteByVersion(version);
+
+    List<PFE> pfes = new ArrayList<>(((PFERepository) repository).findByVersion(version));
+    List<Prof> profs = profrepo.findByVersion(version);
+
+    if (profs.isEmpty()) {
+        throw new BusinessException("Aucun professeur disponible.");
     }
+
+    List<Encadrant> encadrants = profs.stream()
+            .map(prof -> Encadrant.builder()
+                    .prof(prof)
+                    .pfes(new ArrayList<>())
+                    .version(version)
+                    .build())
+            .collect(Collectors.toList());
+
+    Collections.shuffle(encadrants);
+    Collections.shuffle(pfes);
+
+    int baseCapacity = pfes.size() / encadrants.size();
+
+    Map<Encadrant, Integer> capacity = new HashMap<>();
+    for (Encadrant e : encadrants) {
+        capacity.put(e, baseCapacity);
+    }
+
+    List<PFE> unassigned = new ArrayList<>();
+    for (PFE pfe : pfes) {
+
+        // Seperating language profs from technical ones
+        // Selection only profs that who hit the limit 
+        // partitionBy is like partition() in scala 
+        Map<Boolean,List<Encadrant>> candidates = encadrants
+        .stream()
+        .filter(e -> capacity.get(e) > 0)
+        .collect(Collectors.partitioningBy(e -> matchesLanguage(e, pfe)));
+
+        List<Encadrant> langues = candidates.get(Boolean.TRUE);
+        List<Encadrant> techs = candidates.get(Boolean.FALSE);
+
+        if(!langues.isEmpty()){
+            Encadrant chosen = langues.stream()
+            .min(Comparator.comparingInt(e -> e.getPfes().size()))
+            .orElseThrow();
+            assign(pfe, chosen);
+            capacity.put(chosen, capacity.get(chosen) - 1);
+        }else if(!techs.isEmpty()){
+            Encadrant chosen = techs.stream()
+            .min(Comparator.comparingInt(e -> e.getPfes().size()))
+            .orElseThrow();
+            assign(pfe, chosen);
+            capacity.put(chosen, capacity.get(chosen) - 1);
+        }else {
+            unassigned.add(pfe);
+        }
+    }
+    if (!unassigned.isEmpty()){
+        Random random = new Random();
+        Iterator<PFE> its = unassigned.iterator();
+        while(its.hasNext()){
+            PFE pfe = its.next();
+            List <Encadrant> availableEnc = encadrants.stream()
+            .filter(e-> e.getPfes().size() == baseCapacity)
+            .toList();
+            Encadrant e = availableEnc.get(random.nextInt(availableEnc.size()));
+            assign(pfe,e);
+            its.remove();
+        }
+    }
+
+    encadrantrepo.saveAll(encadrants);
+    repository.saveAll(pfes);
+}
+
+private void assign(PFE pfe, Encadrant e) {
+    pfe.setEncadrant(e);
+    pfe.setStatus(Status.CONFIRME);
+    e.getPfes().add(pfe);
+}
+
+private boolean matchesLanguage(Encadrant e, PFE pfe) {
+
+    if (pfe.getLangue() == null) return false;
+    return pfe.getLangue().equals(e.getProf().getSpecialite());
+}
+
+
+
 
     @Override
     public void createPVFolder(Long id ){

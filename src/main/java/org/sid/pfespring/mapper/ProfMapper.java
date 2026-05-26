@@ -14,9 +14,7 @@ public class ProfMapper implements GenericMapper<Prof, RequestProfDTO, ResponseP
         return Prof.builder()
                 .nom(request.nom())
                 .prenom(request.prenom())
-                .specialite(Specialite.valueOf(
-                        request.specialite().trim().toUpperCase()
-                ))
+                .specialite(request.specialite().trim().toUpperCase())
                 .version(request.version())
                 .build();
     }
