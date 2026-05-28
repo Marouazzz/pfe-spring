@@ -1,4 +1,5 @@
 package org.sid.pfespring.services;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,10 +29,8 @@ import org.sid.pfespring.mapper.JuryMapper;
 import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Jury;
-import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
-import org.sid.pfespring.model.Specialite;
 import org.sid.pfespring.repository.ImportVersionRepository;
 import org.sid.pfespring.repository.JuryRepository;
 import org.sid.pfespring.repository.PFERepository;
@@ -56,12 +55,17 @@ public class JuryServiceImpl
     private final FileSystemService fsService;
     private final SoutenanceRepository soutenanceRepository;
 
-    //  appeler entityManager.flush() et executer delete avant insert( prob dunicite jury-pfe)
     @PersistenceContext
     private EntityManager entityManager;
 
+    // Rôles libres par jury (prof1 + prof2)
     private static final int ROLES_LIBRES_PAR_JURY = 2;
+
+    // Spécialités considérées comme "langue" (String, plus enum)
+
+
     private final JuryRepository juryRepository;
+
     public JuryServiceImpl(JuryRepository juryRepository,
                            JuryMapper juryMapper,
                            PFERepository pfeRepository,
@@ -70,21 +74,24 @@ public class JuryServiceImpl
                            FileSystemService fsService,
                            SoutenanceRepository soutenanceRepository) {
         super(juryRepository, juryMapper);
-        this.juryRepository = juryRepository;
-        this.pfeRepository = pfeRepository;
-        this.profRepository = profRepository;
-        this.versrepository = versRepository;
-        this.fsService = fsService;
+        this.juryRepository     = juryRepository;
+        this.pfeRepository      = pfeRepository;
+        this.profRepository     = profRepository;
+        this.versrepository     = versRepository;
+        this.fsService          = fsService;
         this.soutenanceRepository = soutenanceRepository;
-
     }
 
 
     @Override
     @Transactional
     public void affecterJury(Long id) {
-        ImportVersion current_version = versrepository.findById(id).orElseThrow(() -> new BusinessException("Lien invalide. Veuillez ré-importer le fichier Excel."));
-        // CHECK 1 — PFEs existent pour cette version ?
+
+        ImportVersion current_version = versrepository.findById(id)
+                .orElseThrow(() -> new BusinessException(
+                        "Lien invalide. Veuillez ré-importer le fichier Excel."));
+
+        // CHECK 1 — PFEs existent ?
         List<PFE> tousLesPfes = pfeRepository.findByVersion(current_version);
         if (tousLesPfes.isEmpty())
             throw new BusinessException("Aucun PFE trouvé. Importez d'abord le fichier Excel.");
@@ -93,107 +100,82 @@ public class JuryServiceImpl
         boolean encadrantsAffectes = tousLesPfes.stream()
                 .anyMatch(pfe -> pfe.getEncadrant() != null);
         if (!encadrantsAffectes)
-            throw new BusinessException("Encadrants non affectés. Cliquez d'abord sur 'Affecter les encadrants'.");
+            throw new BusinessException(
+                    "Encadrants non affectés. Cliquez d'abord sur 'Affecter les encadrants'.");
 
-        // Supprimer les anciens jurys de cette version avant de recréer
+        // Suppression des anciens jurys (flush pour respecter les contraintes FK)
         soutenanceRepository.deleteSoutenancesByVersion(current_version);
         entityManager.flush();
         juryRepository.deleteByVersionJpql(current_version);
         entityManager.flush();
         entityManager.clear();
+
+        // Recharger après clear
         List<PFE> pfes = pfeRepository.findByVersion(current_version).stream()
                 .filter(pfe -> pfe.getEncadrant() != null)
                 .collect(Collectors.toList());
 
-        //  AJOUT 2 : shuffler les PFEs pour diff res
+        // Shuffle des PFEs pour varier les résultats
         Collections.shuffle(pfes);
-        List<Specialite> specialitesLangue = List.of(Specialite.ANGLAIS, Specialite.FRANCAIS);
-        // AJOUT 3
-        List<Prof> profsTech = new ArrayList<>(profRepository.findByVersionAndSpecialiteNotIn(current_version, specialitesLangue));
-        List<Prof> profsAnglais = new ArrayList<>(profRepository.findByVersionAndSpecialite(current_version, Specialite.ANGLAIS));
-        List<Prof> profsFrancais = new ArrayList<>(profRepository.findByVersionAndSpecialite(current_version, Specialite.FRANCAIS));
-        //  AJOUT 4 : shuffler les profs pour
-        Collections.shuffle(profsTech);
-        Collections.shuffle(profsAnglais);
-        Collections.shuffle(profsFrancais);
 
-        int totalProfs = profsTech.size() + profsAnglais.size() + profsFrancais.size();
-        //if (totalProfs == 0) return Collections.emptyList();
-        if (totalProfs == 0)
+        // Pool unique de tous les profs de cette version
+        List<Prof> tousLesProfs = new ArrayList<>(profRepository.findByVersion(current_version));
+
+        if (tousLesProfs.isEmpty())
             throw new BusinessException("Aucun professeur disponible dans ce fichier.");
 
-        int seuilMax = (int) Math.ceil(
-                (double) (pfes.size() * ROLES_LIBRES_PAR_JURY) / totalProfs
-        );
+        // Shuffle des profs
+        Collections.shuffle(tousLesProfs);
+
 
         Map<Long, Integer> chargeParProf = new HashMap<>();
-        profsTech.forEach(p -> chargeParProf.put(p.getId(), 0));
-        profsAnglais.forEach(p -> chargeParProf.put(p.getId(), 0));
-        profsFrancais.forEach(p -> chargeParProf.put(p.getId(), 0));
-
+        tousLesProfs.forEach(p -> chargeParProf.put(p.getId(), 0));
         for (PFE pfe : pfes) {
-            //  on extrait lid explicitement pour eviter les faux egaux entre
-
-            Long encId = pfe.getEncadrant().getProf().getId();
-            chargeParProf.merge(encId, 1, Integer::sum);
+            chargeParProf.merge(pfe.getEncadrant().getProf().getId(), 1, Integer::sum);
         }
+
+        /*
+         * Seuil max : répartition idéale des ROLES_LIBRES_PAR_JURY rôles/PFE
+         * sur tous les profs. +1 de marge pour éviter tout blocage.
+         */
+        int seuilMax = (int) Math.ceil(
+                (double) (pfes.size() * ROLES_LIBRES_PAR_JURY + 1) / tousLesProfs.size()
+        ) + 1;
 
         List<Jury> jurysACreer = new ArrayList<>();
 
         for (PFE pfe : pfes) {
 
             Prof encadrantProf = pfe.getEncadrant().getProf();
-            // comparer uniquement par id (Long), pas par reference d'objet
-            Long encadrantId = encadrantProf.getId();
+            Long encadrantId   = encadrantProf.getId();
 
-            // PROF1 : tech le moins charge ≠ encadrant (comparaison par id)
-            Prof prof1 = profsTech.stream()
-                    .filter(p -> !p.getId().equals(encadrantId))          // FIX
-                    .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
-                    .min(Comparator.comparingInt(
-                            p -> chargeParProf.getOrDefault(p.getId(), 0)))
-                    .orElseGet(() ->
-                            profsTech.stream()
-                                    .filter(p -> !p.getId().equals(encadrantId)) // FIX
-                                    .min(Comparator.comparingInt(
-                                            p -> chargeParProf.getOrDefault(p.getId(), 0)))
-                                    .orElse(null)
-                    );
+            Prof prof1;
+            Prof prof2;
 
-            if (prof1 != null) chargeParProf.merge(prof1.getId(), 1, Integer::sum);
+            if (isLangueProf(encadrantProf, pfe.getLangue())) {
 
-            Prof prof2 = null;
+                prof1 = choisirProf(tousLesProfs, encadrantId, null, chargeParProf, seuilMax);
+                if (prof1 != null) chargeParProf.merge(prof1.getId(), 1, Integer::sum);
 
-            if (pfe.getLangue() == Langue.FRANCAIS && !profsFrancais.isEmpty()) {
-
-                prof2 = profsFrancais.stream()
-                        .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
-                        .min(Comparator.comparingInt(
-                                p -> chargeParProf.getOrDefault(p.getId(), 0)))
-                        .orElse(null);
-
-                if (prof2 != null) {
-                    chargeParProf.merge(prof2.getId(), 1, Integer::sum);
-                } else {
-                    prof2 = fallbackTech(profsTech, encadrantId, prof1, chargeParProf, seuilMax);
-                }
-
-            } else if (pfe.getLangue() == Langue.ANGLAIS && !profsAnglais.isEmpty()) {
-
-                prof2 = profsAnglais.stream()
-                        .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
-                        .min(Comparator.comparingInt(
-                                p -> chargeParProf.getOrDefault(p.getId(), 0)))
-                        .orElse(null);
-
-                if (prof2 != null) {
-                    chargeParProf.merge(prof2.getId(), 1, Integer::sum);
-                } else {
-                    prof2 = fallbackTech(profsTech, encadrantId, prof1, chargeParProf, seuilMax);
-                }
+                prof2 = choisirProf(tousLesProfs, encadrantId,
+                        prof1 != null ? prof1.getId() : null, chargeParProf, seuilMax);
+                if (prof2 != null) chargeParProf.merge(prof2.getId(), 1, Integer::sum);
 
             } else {
-                prof2 = fallbackTech(profsTech, encadrantId, prof1, chargeParProf, seuilMax);
+
+                prof1 = choisirProfLangue(tousLesProfs, pfe.getLangue(),
+                        encadrantId, chargeParProf, seuilMax);
+
+                if (prof1 == null) {
+                    // Aucun prof de langue dispo → prof normal moins chargé
+                    prof1 = choisirProf(tousLesProfs, encadrantId, null, chargeParProf, seuilMax);
+                }
+                if (prof1 != null) chargeParProf.merge(prof1.getId(), 1, Integer::sum);
+
+
+                prof2 = choisirProf(tousLesProfs, encadrantId,
+                        prof1 != null ? prof1.getId() : null, chargeParProf, seuilMax);
+                if (prof2 != null) chargeParProf.merge(prof2.getId(), 1, Integer::sum);
             }
 
             jurysACreer.add(Jury.builder()
@@ -207,30 +189,54 @@ public class JuryServiceImpl
 
         repository.saveAll(jurysACreer);
     }
+//private meth
+    private boolean isLangueProf(Prof prof, String languePfe) {
+        return prof.getSpecialite() != null
+                && languePfe != null
+                && prof.getSpecialite().equalsIgnoreCase(languePfe);
+    }
 
-    private Prof fallbackTech(List<Prof> profsTech,
-                              Long encadrantId,              // FIX : Long, pas Prof
-                              Prof prof1,
-                              Map<Long, Integer> chargeParProf,
-                              int seuilMax) {
-        Prof fallback = profsTech.stream()
-                .filter(p -> !p.getId().equals(encadrantId))               // FIX
-                .filter(p -> prof1 == null || !p.getId().equals(prof1.getId()))
+
+    private Prof choisirProfLangue(List<Prof> profs,
+                                   String languePfe,
+                                   Long excludeEncadrantId,
+                                   Map<Long, Integer> chargeParProf,
+                                   int seuilMax) {
+        if (languePfe == null || languePfe.isBlank()) return null;
+
+        String langueUp = languePfe.toUpperCase();
+
+
+        return profs.stream()
+                .filter(p -> !p.getId().equals(excludeEncadrantId))
+                .filter(p -> langueUp.equals(
+                        p.getSpecialite() != null ? p.getSpecialite().toUpperCase() : ""))
                 .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
-                .min(Comparator.comparingInt(
-                        p -> chargeParProf.getOrDefault(p.getId(), 0)))
+                .min(Comparator.comparingInt(p -> chargeParProf.getOrDefault(p.getId(), 0)))
+                .orElse(null); // null = saturés → fallback dans affecterJury()
+    }
+
+
+    private Prof choisirProf(List<Prof> profs,
+                             Long excludeId1,
+                             Long excludeId2,
+                             Map<Long, Integer> chargeParProf,
+                             int seuilMax) {
+        return profs.stream()
+                .filter(p -> !p.getId().equals(excludeId1))
+                .filter(p -> excludeId2 == null || !p.getId().equals(excludeId2))
+                .filter(p -> chargeParProf.getOrDefault(p.getId(), 0) < seuilMax)
+                .min(Comparator.comparingInt(p -> chargeParProf.getOrDefault(p.getId(), 0)))
                 .orElseGet(() ->
-                        profsTech.stream()
-                                .filter(p -> !p.getId().equals(encadrantId)) // FIX
-                                .filter(p -> prof1 == null || !p.getId().equals(prof1.getId()))
+                        profs.stream()
+                                .filter(p -> !p.getId().equals(excludeId1))
+                                .filter(p -> excludeId2 == null || !p.getId().equals(excludeId2))
                                 .min(Comparator.comparingInt(
                                         p -> chargeParProf.getOrDefault(p.getId(), 0)))
                                 .orElse(null)
                 );
-
-        if (fallback != null) chargeParProf.merge(fallback.getId(), 1, Integer::sum);
-        return fallback;
     }
+
 
 
     @Override
@@ -239,121 +245,103 @@ public class JuryServiceImpl
         List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            // Create styles first
             Map<String, CellStyle> styles = createStyles(workbook);
-
             Sheet sheet = workbook.createSheet("Planning des Jurys PFE");
 
-            // Set column widths (PLUS LARGES pour voir tout le contenu)
-            sheet.setColumnWidth(0, 4000);  // N°
-            sheet.setColumnWidth(1, 15000); // Sujet PFE (TRÈS LARGE pour les longs sujets)
-            sheet.setColumnWidth(2, 8000);  // CNEs (pour plusieurs CNEs)
-            sheet.setColumnWidth(3, 9000);  // Encadrant (Nom + Prénom)
-            sheet.setColumnWidth(4, 9000);  // Prof1
-            sheet.setColumnWidth(5, 9000);  // Prof2
+            sheet.setColumnWidth(0, 4000);
+            sheet.setColumnWidth(1, 15000);
+            sheet.setColumnWidth(2, 8000);
+            sheet.setColumnWidth(3, 9000);
+            sheet.setColumnWidth(4, 9000);
+            sheet.setColumnWidth(5, 9000);
 
-            // Create HEADER row
             Row headerRow = sheet.createRow(0);
             headerRow.setHeightInPoints(25);
-
             String[] headers = {"N°", "Sujet PFE", "CNEs", "Encadrant", "Professeur 1", "Professeur 2"};
-
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(styles.get("header"));
             }
 
-            // Fill data rows
             int rowNum = 1;
             for (Jury jury : jurys) {
                 Row row = sheet.createRow(rowNum);
                 row.setHeightInPoints(20);
+                String parity = rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center";
 
-                // Column 0: N° (CENTRÉ)
                 Cell cell0 = row.createCell(0);
                 cell0.setCellValue(rowNum);
-                cell0.setCellStyle(styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center"));
+                cell0.setCellStyle(styles.get(parity));
 
-                // Column 1: Sujet PFE (CENTRÉ maintenant)
                 Cell cell1 = row.createCell(1);
                 cell1.setCellValue(jury.getPfe().getSujet());
-                cell1.setCellStyle(styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center"));
+                cell1.setCellStyle(styles.get(parity));
 
-                // Column 2: CNEs (CENTRÉ)
                 Cell cell2 = row.createCell(2);
                 String cnes = jury.getPfe().getEtudiants().stream()
                         .map(Etudiant::getCne)
                         .collect(Collectors.joining(", "));
                 cell2.setCellValue(cnes);
-                cell2.setCellStyle(styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center"));
+                cell2.setCellStyle(styles.get(parity));
 
-                // Column 3: Encadrant (CENTRÉ)
                 Cell cell3 = row.createCell(3);
                 String encadrant = jury.getEncadrant().getNom() + " " + jury.getEncadrant().getPrenom();
                 cell3.setCellValue(encadrant);
-                // Use palette colors for encadrant based on name hash for consistency
-                String encadrantColorKey = "prof_" + (Math.abs(encadrant.hashCode()) % ExcelTheme.PROF_PALETTE.length);
-                if (!styles.containsKey(encadrantColorKey)) {
-                    styles.put(encadrantColorKey, createProfStyle(workbook, encadrantColorKey,
-                            ExcelTheme.PROF_PALETTE[Math.abs(encadrant.hashCode()) % ExcelTheme.PROF_PALETTE.length], true));
-                }
-                cell3.setCellStyle(styles.get(encadrantColorKey));
+                cell3.setCellStyle(getOrCreateProfStyle(styles, workbook, encadrant));
 
-                // Column 4: Professeur 1 (CENTRÉ)
                 Cell cell4 = row.createCell(4);
                 String prof1 = jury.getProf1() != null
                         ? jury.getProf1().getNom() + " " + jury.getProf1().getPrenom()
                         : "Non assigné";
                 cell4.setCellValue(prof1);
-                String prof1Key = "prof_" + prof1.hashCode();
-                if (!styles.containsKey(prof1Key) && jury.getProf1() != null) {
-                    styles.put(prof1Key, createProfStyle(workbook, prof1Key,
-                            ExcelTheme.PROF_PALETTE[Math.abs(prof1.hashCode()) % ExcelTheme.PROF_PALETTE.length], true));
-                }
-                cell4.setCellStyle(styles.getOrDefault(prof1Key, styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center")));
+                cell4.setCellStyle(jury.getProf1() != null
+                        ? getOrCreateProfStyle(styles, workbook, prof1)
+                        : styles.get(parity));
 
-                // Column 5: Professeur 2 (CENTRÉ)
                 Cell cell5 = row.createCell(5);
                 String prof2 = jury.getProf2() != null
                         ? jury.getProf2().getNom() + " " + jury.getProf2().getPrenom()
                         : "Non assigné";
                 cell5.setCellValue(prof2);
-                String prof2Key = "prof_" + prof2.hashCode();
-                if (!styles.containsKey(prof2Key) && jury.getProf2() != null) {
-                    styles.put(prof2Key, createProfStyle(workbook, prof2Key,
-                            ExcelTheme.PROF_PALETTE[Math.abs(prof2.hashCode()) % ExcelTheme.PROF_PALETTE.length], true));
-                }
-                cell5.setCellStyle(styles.getOrDefault(prof2Key, styles.get(rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center")));
+                cell5.setCellStyle(jury.getProf2() != null
+                        ? getOrCreateProfStyle(styles, workbook, prof2)
+                        : styles.get(parity));
 
                 rowNum++;
             }
 
-            // Freeze header row
             sheet.createFreezePane(0, 1);
-
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             workbook.write(out);
             return out.toByteArray();
         }
     }
 
+    private CellStyle getOrCreateProfStyle(Map<String, CellStyle> styles,
+                                           XSSFWorkbook workbook,
+                                           String profName) {
+        String key = "prof_" + Math.abs(profName.hashCode());
+        if (!styles.containsKey(key)) {
+            String hex = ExcelTheme.PROF_PALETTE[
+                    Math.abs(profName.hashCode()) % ExcelTheme.PROF_PALETTE.length];
+            styles.put(key, createProfStyle(workbook, hex));
+        }
+        return styles.get(key);
+    }
+
     private Map<String, CellStyle> createStyles(XSSFWorkbook workbook) {
         Map<String, CellStyle> styles = new HashMap<>();
 
-        // Header style
         CellStyle headerStyle = workbook.createCellStyle();
-        byte[] headerBg = ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG);
-        XSSFColor headerColor = new XSSFColor(headerBg, null);
-        headerStyle.setFillForegroundColor(headerColor);
+        headerStyle.setFillForegroundColor(
+                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG), null));
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
         headerFont.setColor(IndexedColors.WHITE.getIndex());
         headerFont.setFontHeightInPoints((short) 11);
         headerStyle.setFont(headerFont);
-
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         headerStyle.setBorderBottom(BorderStyle.THIN);
@@ -362,58 +350,44 @@ public class JuryServiceImpl
         headerStyle.setBorderRight(BorderStyle.THIN);
         styles.put("header", headerStyle);
 
-        // Odd row styles (white background) - TOUT CENTRÉ
         CellStyle oddCenter = workbook.createCellStyle();
         oddCenter.setBorderBottom(BorderStyle.THIN);
         oddCenter.setBorderLeft(BorderStyle.THIN);
         oddCenter.setBorderRight(BorderStyle.THIN);
         oddCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        oddCenter.setAlignment(HorizontalAlignment.CENTER);  // CENTRÉ
-        byte[] oddBg = ExcelTheme.hexToBytes(ExcelTheme.ROW_IMPAIR);
-        XSSFColor oddColor = new XSSFColor(oddBg, null);
-        oddCenter.setFillForegroundColor(oddColor);
+        oddCenter.setAlignment(HorizontalAlignment.CENTER);
+        oddCenter.setFillForegroundColor(
+                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_IMPAIR), null));
         oddCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         styles.put("cell_odd_center", oddCenter);
 
-        // Even row styles (light gray background) - TOUT CENTRÉ
         CellStyle evenCenter = workbook.createCellStyle();
         evenCenter.setBorderBottom(BorderStyle.THIN);
         evenCenter.setBorderLeft(BorderStyle.THIN);
         evenCenter.setBorderRight(BorderStyle.THIN);
         evenCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        evenCenter.setAlignment(HorizontalAlignment.CENTER);  // CENTRÉ
-        byte[] evenBg = ExcelTheme.hexToBytes(ExcelTheme.ROW_PAIR);
-        XSSFColor evenColor = new XSSFColor(evenBg, null);
-        evenCenter.setFillForegroundColor(evenColor);
+        evenCenter.setAlignment(HorizontalAlignment.CENTER);
+        evenCenter.setFillForegroundColor(
+                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_PAIR), null));
         evenCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         styles.put("cell_even_center", evenCenter);
 
         return styles;
     }
 
-    private CellStyle createProfStyle(XSSFWorkbook workbook, String key, String hexColor, boolean centered) {
+    private CellStyle createProfStyle(XSSFWorkbook workbook, String hexColor) {
         CellStyle style = workbook.createCellStyle();
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-
-        // Centrer le texte si demandé
-        if (centered) {
-            style.setAlignment(HorizontalAlignment.CENTER);
-        } else {
-            style.setAlignment(HorizontalAlignment.LEFT);
-        }
-
-        byte[] bgBytes = ExcelTheme.hexToBytes(hexColor);
-        XSSFColor bgColor = new XSSFColor(bgBytes, null);
-        style.setFillForegroundColor(bgColor);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setFillForegroundColor(
+                new XSSFColor(ExcelTheme.hexToBytes(hexColor), null));
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
         return style;
     }
 
-    
 
     @Override
     public byte[] exportJuryPDF(Long id) throws IOException {
@@ -421,10 +395,12 @@ public class JuryServiceImpl
         List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
         return PDFGenerator.exportJuryPDF(jurys);
     }
+
+
     @Override
-        public void genererPV(Long id) {
-        ImportVersion version  = versrepository.findById(id).get();
-        List<Jury> jurys = ((JuryRepository)repository).findByVersion(version);
+    public void genererPV(Long id) {
+        ImportVersion version = versrepository.findById(id).get();
+        List<Jury> jurys = ((JuryRepository) repository).findByVersion(version);
         jurys.forEach(fsService::generatePVFile);
-        }
+    }
 }

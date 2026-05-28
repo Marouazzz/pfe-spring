@@ -3,7 +3,7 @@ package org.sid.pfespring.mapper;
 import org.sid.pfespring.dto.RequestProfDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.model.Prof;
-import org.sid.pfespring.model.Specialite;
+//import org.sid.pfespring.model.Specialite;
 import org.springframework.stereotype.Component;
 
 @Component
