@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion PFE — Workflow</title>
+    <title>Gestion PFE</title>
     <link rel="stylesheet" th:href="@{/css/upload.css}">
+
 </head>
 <body>
 
 <nav>
     <span class="brand">Gestion PFE</span>
     <div>
-        <a th:href="@{/home}" class="active">Orchestration de soutenances</a>
-<!--        <a th:href="@{/dashboard}">Tableau de bord</a>-->
+        <a th:href="@{/home}" class="active">Orchestration</a>
         <a th:href="${etape4Ok} ? '/dashboard' : '#'"
            th:classappend="${!etape4Ok} ? 'disabled'"
-           th:title="${!etape4Ok} ? 'Completez la planification avant de passer au tableau de bord' : ''">
-            Tableau de bord
-            <span th:if="${!etape4Ok}">🔒</span>
+           th:title="${!etape4Ok} ? 'Completez la planification avant d\'acceder au tableau de bord' : ''">
+            Tableau de bord<span th:if="${!etape4Ok}" style="opacity:.55;font-size:.75rem;"> 🔒</span>
         </a>
     </div>
 </nav>
@@ -26,211 +25,224 @@
     <div class="container">
 
         <h1 class="page-title">Gestion des Soutenances PFE</h1>
-        <p class="page-sub">Suivez les étapes dans l'ordre pour une planification réussie.</p>
+        <p class="page-sub">Importez votre fichier, planifiez, puis téléchargez les PV.</p>
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- ÉTAPE 1 — toujours déverrouillée           -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="step"
-             th:classappend="${etape1Ok} ? 'step--done' : 'step--active'">
+        <!-- ── Flash messages ────────────────────────────────────── -->
+        <div th:if="${successMessage}"
+             style="background:#C6EFCE;color:#276221;border-left:4px solid #276221;
+                    padding:.7rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.87rem;">
+             <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${warnMessage}"
+             style="background:#FFF3CD;color:#7a5800;border-left:4px solid #FFC107;
+                    padding:.7rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.87rem;">
+             <span th:text="${warnMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}"
+             style="background:#FFC7CE;color:#9C0006;border-left:4px solid #9C0006;
+                    padding:.7rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.87rem;">
+             <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             ÉTAPE 1 — Import Excel
+        ══════════════════════════════════════════════════════════ -->
+        <div class="step" th:classappend="${importOk} ? 'step--done' : 'step--active'">
 
             <div class="step-header">
                 <span class="step-number">1</span>
-                <h3>Étape 1 : Importer le fichier Excel</h3>
-                <span th:if="${etape1Ok}"  class="badge-ok">✓ Importé</span>
+                <h3>Importer le fichier Excel</h3>
+                <span th:if="${importOk}" class="badge-ok"> Importé</span>
             </div>
 
-            <form th:action="@{/home/upload}"
-                  method="post"
-                  enctype="multipart/form-data"
-                  class="upload-form">
-                <input type="file" name="file" accept=".xlsx" required id="file-input">
+            <form th:action="@{/home/upload}" method="post"
+                  enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="file" accept=".xlsx" required>
                 <button type="submit" class="btn-primary">Importer</button>
             </form>
 
+            <p th:if="${versionId}" class="hint">
+                <!--  Version active : <strong th:text="${'#' + versionId}"></strong> -->
+                 <span th:if="${jeuAutoOk}" style="color:#276221; margin-left:.5rem;">
+                  <!--   — encadrants &amp; jurys affectés automatiquement -->
+                </span>
+                <span th:if="${jeuAutoPartiel}" style="color:#9C6500; margin-left:.5rem;">
+                    <!--  — affectation partielle, vérifiez les avertissements ci-dessus.   -->
+                </span>
+            </p>
         </div>
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- ÉTAPE 2 — déverrouillée si etape1Ok        -->
-        <!-- ═══════════════════════════════════════════ -->
+        <!-- ══════════════════════════════════════════════════════════
+             ÉTAPE 2 — Planification (inline dépliable)
+        ══════════════════════════════════════════════════════════ -->
         <div class="step"
-             th:classappend="${etape2Ok} ? 'step--done' : (${etape1Ok} ? 'step--active' : 'step--locked')">
+             th:classappend="${etape4Ok} ? 'step--done' : (${importOk} ? 'step--active' : 'step--locked')"
+             id="step-plan">
 
             <div class="step-header">
                 <span class="step-number">2</span>
-                <h3>Étape 2 : Affecter les encadrants</h3>
-                <span th:if="${etape2Ok}"  class="badge-ok">✓ Affecté</span>
-                <span th:if="${!etape1Ok}" class="badge-locked">🔒 Verrouillé</span>
+                <h3>Planifier les soutenances</h3>
+                <span th:if="${etape4Ok}"  class="badge-ok"> Planifié</span>
+                <span th:if="${!importOk}" class="badge-locked">🔒 Verrouillé</span>
             </div>
 
-            <div class="step-content">
-                <div class="step-left">
+            <!-- Verrouillé -->
+            <th:block th:if="${!importOk}">
+                <p class="msg-warn">Importez d'abord un fichier Excel (étape 1)</p>
+            </th:block>
 
-                    <!-- Verrouillé -->
-                    <th:block th:if="${!etape1Ok}">
-                        <p class="msg-warn">
-                            Veuillez d'abord importer un fichier Excel (Étape 1).
-                        </p>
-                    </th:block>
+            <!-- Disponible -->
+            <th:block th:if="${importOk}">
 
-                    <!-- Disponible ou déjà fait -->
-                    <th:block th:if="${etape1Ok}">
-                        <form th:action="@{/pfes/affecter}" method="post" style="display:inline;">
-                            <button type="submit" class="btn-success">Affecter les encadrants</button>
-                        </form>
-                    </th:block>
+                <!-- Bouton toggle -->
+                <button type="button" class="btn-configure" id="btn-cfg"
+                        onclick="togglePanel()">
+                    <span th:text="${etape4Ok} ? ' Reconfigurer' : ' Configurer &amp; planifier'">Configurer</span>
+                    <span class="arr">▼</span>
+                </button>
+                <p th:if="${etape4Ok}" class="recalc-hint">
+                    Recalculez avec de nouveaux paramètres si nécessaire.
+                </p>
 
+                <!-- Formulaire dépliable -->
+                <div class="sched-panel" id="sched-panel">
+                    <form th:action="@{/scheduling/launch}" method="post">
+
+                        <p class="sched-section">Stratégie</p>
+                        <div class="strategy-row">
+                            <label class="strat-card">
+                                <input type="radio" name="strategie" value="STRICT">
+                                <div class="sc-label"> Strict</div>
+                                <div class="sc-desc">Placement direct, déterministe, rapide.</div>
+                            </label>
+                            <label class="strat-card">
+                                <input type="radio" name="strategie" value="LES_DEUX" checked>
+                                <div class="sc-label"> Les deux</div>
+                                <div class="sc-desc">Compare strict + optimisé et présente les deux</div>
+                            </label>
+                        </div>
+
+                        <p class="sched-section">Fenêtre temporelle</p>
+                        <div class="sched-grid">
+                            <div class="sched-group">
+                                <label for="dateDebut">Date de début *</label>
+                                <input type="date" id="dateDebut" name="dateDebut"
+                                       th:value="${dateDebut}" required>
+                            </div>
+                            <div class="sched-group">
+                                <label for="nombreJours">Jours ouvrables *</label>
+                                <input type="number" id="nombreJours" name="nombreJours"
+                                       min="1" max="30" value="5" required>
+                            </div>
+                        </div>
+
+                        <p class="sched-section">Créneaux <span style="font-weight:400;">(optionnel par défaut de 08:00 à 18:00)</span></p>
+                        <div class="sched-grid">
+                            <div class="sched-group">
+                                <label>Heure de début</label>
+                                <input type="time" name="heureDebutJournee" placeholder="08:00">
+                            </div>
+                            <div class="sched-group">
+                                <label>Heure de fin</label>
+                                <input type="time" name="heureFinJournee" placeholder="18:00">
+                            </div>
+                            <div class="sched-group" style="grid-column:1/-1;">
+                                <div class="toggle-row">
+                                    <input type="checkbox" id="pauseDej" name="pauseDejeunerActive" checked>
+                                    <label for="pauseDej" style="font-weight:400; cursor:pointer;">
+                                        Activer la pause déjeuner (12h–14h)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="sched-section">Jury <span style="font-weight:400;">(optionnel)</span></p>
+                        <div class="sched-grid">
+                            <div class="sched-group">
+                                <label>Pause min entre jurys (min)</label>
+                                <input type="number" name="pauseEntreJurysMinutes"
+                                       min="0" max="120" placeholder="60">
+                            </div>
+                            <div class="sched-group">
+                                <label>Max jurys / prof / jour</label>
+                                <input type="number" name="maxJurysParProfParJour"
+                                       min="1" max="10" placeholder="4">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-launch">Lancer la planification →</button>
+                    </form>
                 </div>
-                <div class="step-right">
-                    <th:block th:if="${exportEncadrantsOk}">
-                        <a th:href="@{/pfes/export/excel}" class="excel-link">
-                            <button type="button" class="excel-btn">
-                                <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
-                                Excel
-                            </button>
-                        </a>
-                        <a th:href="@{/pfes/export/pdf}" class="excel-link">
-                            <button type="button" class="pdf-btn">
-                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
-                                PDF
-                            </button>
-                        </a>
-                    </th:block>
-                </div>
-            </div>
 
+                <!-- ── Téléchargements après validation ─────────────── -->
+                <th:block th:if="${etape4Ok}">
+
+                    <!-- Planning COMPLET → boutons actifs -->
+                    <th:block th:if="${planningComplet}">
+                        <div class="dl-grid" style="margin-top:1rem;">
+                            <div class="dl-card">
+                                <div class="dl-card-title"> Excel</div>
+                                <div class="dl-card-btns">
+                                    <a th:href="@{/scheduling/download/excel}">
+                                        <button type="button" class="excel-btn">
+                                            <img th:src="@{/images/excel.svg}" class="excel-icon" alt="">
+                                            Télécharger
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="dl-card">
+                                <div class="dl-card-title"> PDF</div>
+                                <div class="dl-card-btns">
+                                    <a th:href="@{/scheduling/download/pdf}">
+                                        <button type="button" class="pdf-btn">
+                                            <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="">
+                                            Télécharger
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+
+                    <!-- Planning PARTIEL → message bloquant -->
+                    <th:block th:if="${!planningComplet}">
+                        <div class="dl-blocked" style="margin-top:1rem;">
+                            <strong> Téléchargement indisponible</strong>
+                            Le planning validé contient des conflits non résolus.
+                            Relancez la planification pour obtenir un planning complet
+                            sans anomalies avant de pouvoir télécharger.
+                        </div>
+                    </th:block>
+
+                </th:block>
+
+            </th:block>
         </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- ÉTAPE 3 — déverrouillée si etape2Ok        -->
-        <!-- ═══════════════════════════════════════════ -->
         <div class="step"
-             th:classappend="${etape3Ok} ? 'step--done' : (${etape2Ok} ? 'step--active' : 'step--locked')">
+             th:classappend="${pvGeneres} ? 'step--done' : (${planningComplet} ? 'step--active' : 'step--locked')">
 
             <div class="step-header">
                 <span class="step-number">3</span>
-                <h3>Étape 3 : Affecter les jurys</h3>
-                <span th:if="${etape3Ok}"  class="badge-ok">✓ Affecté</span>
-                <span th:if="${!etape2Ok}" class="badge-locked">🔒 Verrouillé</span>
+                <h3>Télécharger les procès-verbaux (PV)</h3>
+                <span th:if="${pvGeneres}"       class="badge-ok">✓ Générés</span>
+                <span th:if="${!planningComplet}" class="badge-locked">🔒 Verrouillé</span>
             </div>
 
             <div class="step-content">
                 <div class="step-left">
-
-                    <th:block th:if="${!etape2Ok}">
-                        <p class="msg-warn">
-                            Veuillez d'abord affecter les encadrants (Étape 2).
-                        </p>
+                    <th:block th:if="${!planningComplet}">
+                        <p class="msg-warn">Un planning complet sans anomalies est requis (étape 2).</p>
                     </th:block>
-
-                    <th:block th:if="${etape2Ok}">
-                        <form th:action="@{/jurys/affecter}" method="post" style="display:inline;">
-                            <button type="submit" class="btn-success">Affecter les jurys</button>
-                        </form>
-                    </th:block>
-
-                </div>
-                <div class="step-right">
-                    <th:block th:if="${exportJurysOk}">
-                        <a th:href="@{/jurys/export/excel}" class="excel-link">
-                            <button type="button" class="excel-btn">
-                                <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
-                                Excel
-                            </button>
-                        </a>
-                        <a th:href="@{/jurys/export/pdf}" class="excel-link">
-                            <button type="button" class="pdf-btn">
-                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
-                                PDF
-                            </button>
-                        </a>
-                    </th:block>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- ÉTAPE 4 — déverrouillée si etape3Ok        -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="step"
-             th:classappend="${etape4Ok} ? 'step--done' : (${etape3Ok} ? 'step--active' : 'step--locked')">
-
-            <div class="step-header">
-                <span class="step-number">4</span>
-                <h3>Étape 4 : Planifier les soutenances</h3>
-                <span th:if="${etape4Ok}"  class="badge-ok">✓ Planifié</span>
-                <span th:if="${!etape3Ok}" class="badge-locked">🔒 Verrouillé</span>
-            </div>
-
-            <div class="step-content">
-                <div class="step-left">
-
-                    <th:block th:if="${!etape3Ok}">
-                        <p class="msg-warn">
-                            Veuillez d'abord affecter les jurys (Étape 3).
-                        </p>
-                    </th:block>
-
-                    <th:block th:if="${etape3Ok}">
-                        <form th:action="@{/soutenances/planifier}" method="post" style="display:inline;">
-                            <button type="submit" class="btn-success">Planifier les soutenances</button>
-                        </form>
-                    </th:block>
-
-                </div>
-                <div class="step-right">
-                    <th:block th:if="${exportSoutenancesOk}">
-                        <a th:href="@{/soutenances/export/excel}" class="excel-link">
-                            <button type="button" class="excel-btn">
-                                <img th:src="@{/images/excel.svg}" class="excel-icon" alt="Excel">
-                                Excel
-                            </button>
-                        </a>
-                        <a th:href="@{/soutenances/export/pdf}" class="excel-link">
-                            <button type="button" class="pdf-btn">
-                                <img th:src="@{/images/pdf.svg}" class="pdf-icon" alt="Excel">
-                                PDF
-                            </button>
-                        </a>
-                    </th:block>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- ÉTAPE 5 — déverrouillée si etape4Ok        -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="step"
-             th:classappend="${etape5Ok} ? 'step--done' : (${etape4Ok} ? 'step--active' : 'step--locked')">
-
-            <div class="step-header">
-                <span class="step-number">5</span>
-                <h3>Étape 5 : Télécharger les procès-verbaux (PV)</h3>
-                <span th:if="${etape5Ok}"  class="badge-ok">✓ Générés</span>
-                <span th:if="${!etape4Ok}" class="badge-locked">🔒 Verrouillé</span>
-            </div>
-
-            <div class="step-content">
-                <div class="step-left">
-
-                    <th:block th:if="${!etape4Ok}">
-                        <p class="msg-warn">
-                            Veuillez d'abord planifier les soutenances (Étape 4).
-                        </p>
-                    </th:block>
-
-                    <th:block th:if="${etape4Ok}">
+                    <th:block th:if="${planningComplet}">
                         <form th:action="@{/pv/generer}" method="post" style="display:inline;">
                             <button type="submit" class="btn-success">Générer les PV</button>
                         </form>
                     </th:block>
-
                 </div>
                 <div class="step-right">
-                    <th:block th:if="${etape5Ok}">
-                        <a th:href="@{/pv/download}" class="excel-link">
+                    <th:block th:if="${pvGeneres}">
+                        <a th:href="@{/pv/download}">
                             <button type="button" class="zip-btn">
                                 <img th:src="@{/images/zip.svg}" class="excel-icon" alt="ZIP">
                                 Télécharger ZIP
@@ -239,11 +251,36 @@
                     </th:block>
                 </div>
             </div>
-
         </div>
 
     </div>
 </div>
+
+<script>
+    function togglePanel() {
+        var panel = document.getElementById('sched-panel');
+        var btn   = document.getElementById('btn-cfg');
+        var open  = panel.classList.toggle('open');
+        btn.classList.toggle('open', open);
+        if (open) setTimeout(function() {
+            panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }, 50);
+    }
+
+    // Ouvre automatiquement si flag flash posé par SchedulingController
+    /*[# th:if="${openSchedulingForm}"]*/
+    document.addEventListener('DOMContentLoaded', function() {
+        var panel = document.getElementById('sched-panel');
+        var btn   = document.getElementById('btn-cfg');
+        if (panel && btn) {
+            panel.classList.add('open');
+            btn.classList.add('open');
+            document.getElementById('step-plan')
+                .scrollIntoView({ behavior:'smooth' });
+        }
+    });
+    /*[/]*/
+</script>
 
 </body>
 </html>

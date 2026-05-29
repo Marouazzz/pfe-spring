@@ -444,3 +444,79 @@ button {
     button { width: 100%; justify-content: center; }
     .excel-btn, .zip-btn { width: 100%; justify-content: center; }
 }
+.sched-panel {
+    display: none;
+    margin-top: 1.1rem;
+    border-top: 1px solid #dde4ed;
+    padding-top: 1.1rem;
+    animation: fadeDown .2s ease;
+}
+.sched-panel.open { display: block; }
+@keyframes fadeDown {
+    from { opacity:0; transform:translateY(-6px); }
+    to   { opacity:1; transform:translateY(0);    }
+}
+
+/* ── stratégie ── */
+.strategy-row { display:flex; gap:.8rem; margin:.4rem 0 1rem; }
+.strat-card {
+    flex:1; border:2px solid #dde4ed; border-radius:8px;
+    padding:.85rem 1rem; cursor:pointer;
+    transition:border-color .15s, background .15s;
+}
+.strat-card input[type=radio]    { display:none; }
+.strat-card:has(input:checked)   { border-color:#1F4E79; background:#f0f5fb; }
+.strat-card .sc-label { font-weight:700; font-size:.88rem; color:#1F4E79; }
+.strat-card .sc-desc  { font-size:.75rem; color:#666; margin-top:.25rem; }
+
+/* ── grille champs ── */
+.sched-grid { display:grid; grid-template-columns:1fr 1fr; gap:.9rem; }
+.sched-group { display:flex; flex-direction:column; gap:.3rem; }
+.sched-group label { font-weight:600; font-size:.83rem; color:#444; }
+.sched-group input {
+    padding:.5rem .7rem; border:1px solid #ccc;
+    border-radius:6px; font-size:.9rem;
+}
+.sched-group input:focus { outline:none; border-color:#1F4E79; }
+.sched-section { font-size:.78rem; font-weight:700; color:#1F4E79;
+    text-transform:uppercase; letter-spacing:.04em;
+    margin:1rem 0 .45rem; }
+.toggle-row { display:flex; align-items:center; gap:.55rem; font-size:.84rem; margin-top:.2rem;}
+.toggle-row input[type=checkbox] { accent-color:#1F4E79; width:15px; height:15px; }
+
+/* ── bouton lancer ── */
+.btn-launch {
+    background:#1F4E79; color:#fff; border:none;
+    padding:.6rem 2rem; border-radius:7px;
+    font-size:.93rem; font-weight:700; cursor:pointer; margin-top:1.1rem;
+}
+.btn-launch:hover { background:#163a5e; }
+
+/* ── bouton configurer (toggle) ── */
+.btn-configure {
+    display:inline-flex; align-items:center; gap:.5rem;
+    background:#1F4E79; color:#fff; border:none;
+    padding:.58rem 1.4rem; border-radius:7px;
+    font-size:.88rem; font-weight:600; cursor:pointer;
+}
+.btn-configure:hover { background:#163a5e; }
+.btn-configure .arr { transition:transform .2s; font-size:.7rem; }
+.btn-configure.open .arr { transform:rotate(180deg); }
+
+/* ── téléchargements planning ── */
+.dl-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin-top:.6rem; }
+.dl-card {
+    border:1px solid #dde4ed; border-radius:8px; padding:.8rem 1rem;
+    display:flex; flex-direction:column; gap:.5rem;
+}
+.dl-card-title { font-size:.78rem; font-weight:700; color:#1F4E79; text-transform:uppercase; }
+.dl-card-btns  { display:flex; gap:.5rem; }
+.dl-blocked {
+    background:#FFF3CD; border:1px solid #FFC107; border-radius:8px;
+    padding:.75rem 1rem; font-size:.85rem; color:#7a5800; margin-top:.6rem;
+}
+.dl-blocked strong { display:block; margin-bottom:.2rem; }
+
+/* ── hint texte petit ── */
+.hint { font-size:.78rem; color:#888; margin-top:.3rem; }
+.recalc-hint { font-size:.79rem; color:#555; margin-top:.4rem; }
