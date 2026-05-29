@@ -1,0 +1,60 @@
+# Config
+# Modifiable sans toucher au code Java.
+# Toutes les valeurs ici sont des DEFAULTS.
+# Le formulaire web peut surcharger : dateDebut, nombreJours,
+# heureDebutJournee, heureFinJournee, pauseDejeunerActive,
+# pauseEntreJurysMinutes, maxJurysParProfParJour, strategie.
+
+scheduling:
+
+  creneaux:
+    heure-debut-journee: "08:00"
+    heure-fin-journee:   "18:00"
+
+    # Duree d'une soutenance — FIXE, ne pas modifier
+    # duree-soutenance-minutes: 60
+
+    pause-dejeuner:
+      active: true
+      debut:  "12:00"
+      fin:    "14:00"
+
+    # Pause minimale obligatoire (HARD) entre deux jurys
+    # pour un meme professeur dans meme day
+
+    pause-entre-jurys-prof-minutes: 60
+
+  #  Composition du jury
+  jury:
+    membres-minimum: 3
+    membres-maximum: 3
+
+    # SOFT uniquement : chercher un prof dont la specialite = langue du PFE
+    preferer-prof-langue: true
+
+  #Charge des professeurs
+  charge:
+    # Maximum de jurys par professeur et par jour (HARD)
+    max-jurys-par-prof-par-jour: 4
+
+    # Si true faire rep
+    # charge/prof ≈ totalSoutenances / nbProfs (SOFT)
+    equilibrer-charge: true
+
+
+  salles:
+
+    verifier-capacite: true
+
+  #  Algorithme optimise
+  algorithme:
+    optimise:
+      iterations-max:        2000
+      temps-limite-secondes: 30
+      temperature-initiale:  100.0
+      taux-refroidissement:  0.995
+
+  # Comportement en cas de conflits insolubles
+  conflits:
+
+    planning-partiel-telechargeable: true

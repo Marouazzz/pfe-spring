@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planification des soutenances</title>
+    <link rel="stylesheet" th:href="@{/css/upload.css}">
+    <style>
+        .scheduling-form {
+            background: #fff;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+        .form-group { display: flex; flex-direction: column; gap: .4rem; }
+        .form-group label { font-weight: 600; font-size: .9rem; color: #333; }
+        .form-group input, .form-group select {
+            padding: .55rem .75rem; border: 1px solid #ccc;
+            border-radius: 6px; font-size: .95rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none; border-color: #1F4E79; box-shadow: 0 0 0 2px rgba(31,78,121,.15);
+        }
+        .form-full { grid-column: 1 / -1; }
+        .strategy-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: .5rem; }
+        .strategy-card {
+            border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem;
+            cursor: pointer; transition: border-color .2s, background .2s;
+            text-align: center;
+        }
+        .strategy-card input[type=radio] { display: none; }
+        .strategy-card:has(input:checked) { border-color: #1F4E79; background: #EBF5FB; }
+        .strategy-card .icon { font-size: 1.8rem; margin-bottom: .4rem; }
+        .strategy-card .label { font-weight: 700; font-size: .9rem; }
+        .strategy-card .desc { font-size: .78rem; color: #666; margin-top: .3rem; }
+        .section-title {
+            font-size: 1rem; font-weight: 700; color: #1F4E79;
+            border-bottom: 2px solid #EBF5FB; padding-bottom: .4rem;
+            margin: 1.4rem 0 .8rem;
+        }
+        .btn-launch {
+            background: #1F4E79; color: #fff; border: none; padding: .75rem 2.5rem;
+            border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-launch:hover { background: #16375a; }
+        .back-link { color: #1F4E79; text-decoration: none; font-size: .9rem; }
+        .back-link:hover { text-decoration: underline; }
+        .toggle-row { display: flex; align-items: center; gap: .7rem; }
+        .toggle-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #1F4E79; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <span class="brand">Gestion PFE</span>
+    <div>
+        <a th:href="@{/home}">Orchestration de soutenances</a>
+        <a th:href="@{/scheduling/form}" class="active">Planification</a>
+    </div>
+</nav>
+
+<div class="page">
+    <div class="container">
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
+            <div>
+                <h1 class="page-title" style="margin-bottom:.3rem;">Planification des soutenances</h1>
+                <p class="page-sub">Configurez la fenêtre temporelle et choisissez la stratégie d'optimisation.</p>
+            </div>
+            <a th:href="@{/home}" class="back-link">← Retour au workflow</a>
+        </div>
+
+        <div class="scheduling-form">
+            <form th:action="@{/scheduling/launch}" method="post" th:object="${form}">
+
+                <div class="section-title">Stratégie d'optimisation</div>
+                <div class="strategy-cards">
+                    <label class="strategy-card">
+                        <input type="radio" th:field="*{strategie}" value="STRICT">
+                        <div class="icon">⚡</div>
+                        <div class="label">Strict</div>
+                        <div class="desc">Placement rapide, aucune optimisation. Résultat déterministe.</div>
+                    </label>
+                    <label class="strategy-card">
+                        <input type="radio" th:field="*{strategie}" value="OPTIMISE">
+
+                        <div class="label">Optimisé</div>
+                        <div class="desc">Recuit simulé — meilleure qualité, plus long.</div>
+                    </label>
+                    <label class="strategy-card">
+                        <input type="radio" th:field="*{strategie}" value="LES_DEUX" checked>
+
+                        <div class="label">Les deux</div>
+                        <div class="desc">Compare strict et optimisé — rapport d'amélioration fourni.</div>
+                    </label>
+                </div>
+
+                <div class="section-title">Fenêtre temporelle</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="dateDebut">Date de début *</label>
+                        <input type="date" id="dateDebut" th:field="*{dateDebut}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombreJours">Nombre de jours ouvrables *</label>
+                        <input type="number" id="nombreJours" th:field="*{nombreJours}"
+                               min="1" max="30" value="5" required>
+                    </div>
+                </div>
+
+
+                <div class="section-title">Créneaux journaliers <span style="font-weight:400;font-size:.8rem;">(optionnel — défauts YAML)</span></div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="heureDebutJournee">Heure de début</label>
+                        <input type="time" id="heureDebutJournee" th:field="*{heureDebutJournee}" placeholder="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="heureFinJournee">Heure de fin</label>
+                        <input type="time" id="heureFinJournee" th:field="*{heureFinJournee}" placeholder="18:00">
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end;">
+                        <label>&nbsp;</label>
+                        <div class="toggle-row">
+                            <input type="checkbox" id="pauseDejeunerActive" th:field="*{pauseDejeunerActive}" checked>
+                            <label for="pauseDejeunerActive" style="font-weight:400;">Activer la pause déjeuner</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">Paramètres jury <span style="font-weight:400;font-size:.8rem;">(optionnel)</span></div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="pauseEntreJurysMinutes">Pause min. entre jurys (min)</label>
+                        <input type="number" id="pauseEntreJurysMinutes"
+                               th:field="*{pauseEntreJurysMinutes}"
+                               min="0" max="120" placeholder="60 (défaut YAML)">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxJurysParProfParJour">Max jurys / prof / jour</label>
+                        <input type="number" id="maxJurysParProfParJour"
+                               th:field="*{maxJurysParProfParJour}"
+                               min="1" max="10" placeholder="4 (défaut YAML)">
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; text-align:right;">
+                    <button type="submit" class="btn-launch"> Lancer la planification</button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
