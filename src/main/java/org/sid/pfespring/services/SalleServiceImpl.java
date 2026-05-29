@@ -1,25 +1,40 @@
 package org.sid.pfespring.services;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.RequestSalleDTO;
 import org.sid.pfespring.dto.ResponseSalleDTO;
 import org.sid.pfespring.dto.ResponseSoutenanceDTO;
 import org.sid.pfespring.mapper.SalleMapper;
 import org.sid.pfespring.mapper.SoutenanceMapper;
-import org.sid.pfespring.model.*;
-import org.sid.pfespring.repository.*;
-import org.sid.pfespring.utils.ExcelTheme;
-import org.sid.pfespring.utils.PDFGenerator;
+import org.sid.pfespring.model.ImportVersion;
+import org.sid.pfespring.model.Jury;
+import org.sid.pfespring.model.Prof;
+import org.sid.pfespring.model.Salle;
+import org.sid.pfespring.model.Soutenance;
+import org.sid.pfespring.repository.ImportVersionRepository;
+import org.sid.pfespring.repository.JuryRepository;
+import org.sid.pfespring.repository.SalleRepository;
+import org.sid.pfespring.repository.SoutenanceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.io.IOException;
-import java.io.ByteArrayOutputStream;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class SalleServiceImpl
@@ -303,230 +318,230 @@ public class SalleServiceImpl
     }
 
     //  EXPORT EXCEL
-    @Override
-    public byte[] exportPlanningExcel(Long versionId) throws IOException {
-        ImportVersion version = versionRepository.findById(versionId).get();
-        List<Soutenance> soutenances = soutenanceRepository
-                .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
-        XSSFWorkbook wb = new XSSFWorkbook();
+    // @Override
+    // public byte[] exportPlanningExcel(Long versionId) throws IOException {
+    //     ImportVersion version = versionRepository.findById(versionId).get();
+    //     List<Soutenance> soutenances = soutenanceRepository
+    //             .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
+    //     XSSFWorkbook wb = new XSSFWorkbook();
 
-        Map<String, String> profColorMap = buildProfColorMap(soutenances);
-        Map<String, String> dateColorMap = buildDateColorMap(soutenances);
+    //     Map<String, String> profColorMap = buildProfColorMap(soutenances);
+    //     Map<String, String> dateColorMap = buildDateColorMap(soutenances);
 
-        ecrireFeuillePlanning(wb, soutenances, profColorMap, dateColorMap);
-        ecrireFeuilleLegend(wb, profColorMap, dateColorMap);
-        ecrireFeuilleAnomalies(wb, detecterAnomalies(soutenances));
+    //     ecrireFeuillePlanning(wb, soutenances, profColorMap, dateColorMap);
+    //     ecrireFeuilleLegend(wb, profColorMap, dateColorMap);
+    //     ecrireFeuilleAnomalies(wb, detecterAnomalies(soutenances));
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        wb.write(out); wb.close();
-        return out.toByteArray();
-    }
+    //     ByteArrayOutputStream out = new ByteArrayOutputStream();
+    //     wb.write(out); wb.close();
+    //     return out.toByteArray();
+    // }
 
     // ── Mapping prof → couleur (via ExcelTheme) ───────────────────
-    private Map<String, String> buildProfColorMap(List<Soutenance> soutenances) {
-        Set<String> profsSet = new TreeSet<>();
-        for (Soutenance s : soutenances) {
-            Jury j = s.getJury();
-            if (j.getEncadrant() != null) profsSet.add(nomProf(j.getEncadrant()));
-            if (j.getProf1()     != null) profsSet.add(nomProf(j.getProf1()));
-            if (j.getProf2()     != null) profsSet.add(nomProf(j.getProf2()));
-        }
-        Map<String, String> map = new LinkedHashMap<>();
-        int i = 0;
-        for (String prof : profsSet)
-            map.put(prof, ExcelTheme.PROF_PALETTE[i++ % ExcelTheme.PROF_PALETTE.length]);
-        return map;
-    }
+    // private Map<String, String> buildProfColorMap(List<Soutenance> soutenances) {
+    //     Set<String> profsSet = new TreeSet<>();
+    //     for (Soutenance s : soutenances) {
+    //         Jury j = s.getJury();
+    //         if (j.getEncadrant() != null) profsSet.add(nomProf(j.getEncadrant()));
+    //         if (j.getProf1()     != null) profsSet.add(nomProf(j.getProf1()));
+    //         if (j.getProf2()     != null) profsSet.add(nomProf(j.getProf2()));
+    //     }
+    //     Map<String, String> map = new LinkedHashMap<>();
+    //     int i = 0;
+    //     for (String prof : profsSet)
+    //         map.put(prof, ExcelTheme.PROF_PALETTE[i++ % ExcelTheme.PROF_PALETTE.length]);
+    //     return map;
+    // }
 
     // ── Mapping date → couleur (via ExcelTheme) ───────────────────
-    private Map<String, String> buildDateColorMap(List<Soutenance> soutenances) {
-        Map<String, String> map = new LinkedHashMap<>();
-        int i = 0;
-        for (Soutenance s : soutenances) {
-            String d = s.getDateSoutenance().toString();
-            if (!map.containsKey(d))
-                map.put(d, ExcelTheme.DATE_PALETTE[i++ % ExcelTheme.DATE_PALETTE.length]);
-        }
-        return map;
-    }
+    // private Map<String, String> buildDateColorMap(List<Soutenance> soutenances) {
+    //     Map<String, String> map = new LinkedHashMap<>();
+    //     int i = 0;
+    //     for (Soutenance s : soutenances) {
+    //         String d = s.getDateSoutenance().toString();
+    //         if (!map.containsKey(d))
+    //             map.put(d, ExcelTheme.DATE_PALETTE[i++ % ExcelTheme.DATE_PALETTE.length]);
+    //     }
+    //     return map;
+    // }
 
-    private String nomProf(Prof p) {
-        return p.getNom() + " " + p.getPrenom();
-    }
+    // private String nomProf(Prof p) {
+    //     return p.getNom() + " " + p.getPrenom();
+    // }
 
     //  FEUILLE PLANNING
-    private void ecrireFeuillePlanning(XSSFWorkbook wb,
-                                       List<Soutenance> soutenances,
-                                       Map<String, String> profColorMap,
-                                       Map<String, String> dateColorMap) {
-        XSSFSheet     sheet  = wb.createSheet("Planning Soutenances");
-        XSSFCellStyle header = buildHeaderStyle(wb);
+    // private void ecrireFeuillePlanning(XSSFWorkbook wb,
+    //                                    List<Soutenance> soutenances,
+    //                                    Map<String, String> profColorMap,
+    //                                    Map<String, String> dateColorMap) {
+    //     XSSFSheet     sheet  = wb.createSheet("Planning Soutenances");
+    //     XSSFCellStyle header = buildHeaderStyle(wb);
 
-        String[] cols = {"Date","Heure Début","Heure Fin","Salle","Filière",
-                "Sujet PFE","Étudiant(s)","Encadrant","Membre 1","Membre 2"};
-        Row h = sheet.createRow(0);
-        h.setHeightInPoints(28);
-        for (int i = 0; i < cols.length; i++) {
-            Cell c = h.createCell(i);
-            c.setCellValue(cols[i]);
-            c.setCellStyle(header);
-        }
+    //     String[] cols = {"Date","Heure Début","Heure Fin","Salle","Filière",
+    //             "Sujet PFE","Étudiant(s)","Encadrant","Membre 1","Membre 2"};
+    //     Row h = sheet.createRow(0);
+    //     h.setHeightInPoints(28);
+    //     for (int i = 0; i < cols.length; i++) {
+    //         Cell c = h.createCell(i);
+    //         c.setCellValue(cols[i]);
+    //         c.setCellStyle(header);
+    //     }
 
-        int rowNum = 1;
-        for (Soutenance s : soutenances) {
-            Row  row  = sheet.createRow(rowNum);
-            row.setHeightInPoints(30);
-            Jury jury = s.getJury();
+    //     int rowNum = 1;
+    //     for (Soutenance s : soutenances) {
+    //         Row  row  = sheet.createRow(rowNum);
+    //         row.setHeightInPoints(30);
+    //         Jury jury = s.getJury();
 
-            String dateStr    = s.getDateSoutenance().toString();
-            String heureStr   = s.getHeureDebut().toString().substring(0, 5);
-            String filiereStr = s.getPfe().getEtudiants().stream()
-                    .findFirst().map(e -> e.getFiliere().name()).orElse("");
-            String etuds      = s.getPfe().getEtudiants().stream()
-                    .map(e -> e.getNom() + " " + e.getPrenom())
-                    .collect(Collectors.joining("\n"));
-            String encNom    = jury.getEncadrant() != null ? nomProf(jury.getEncadrant()) : "";
-            String p1Nom     = jury.getProf1()     != null ? nomProf(jury.getProf1())     : "";
-            String p2Nom     = jury.getProf2()     != null ? nomProf(jury.getProf2())     : "N/A";
-            String p2Affiche = jury.getProf2()     != null
-                    ? p2Nom  : "N/A";
+    //         String dateStr    = s.getDateSoutenance().toString();
+    //         String heureStr   = s.getHeureDebut().toString().substring(0, 5);
+    //         String filiereStr = s.getPfe().getEtudiants().stream()
+    //                 .findFirst().map(e -> e.getFiliere().name()).orElse("");
+    //         String etuds      = s.getPfe().getEtudiants().stream()
+    //                 .map(e -> e.getNom() + " " + e.getPrenom())
+    //                 .collect(Collectors.joining("\n"));
+    //         String encNom    = jury.getEncadrant() != null ? nomProf(jury.getEncadrant()) : "";
+    //         String p1Nom     = jury.getProf1()     != null ? nomProf(jury.getProf1())     : "";
+    //         String p2Nom     = jury.getProf2()     != null ? nomProf(jury.getProf2())     : "N/A";
+    //         String p2Affiche = jury.getProf2()     != null
+    //                 ? p2Nom  : "N/A";
 
-            // ── Styles via ExcelTheme ──────────────────────────────
-            XSSFCellStyle dateStyle    = buildColorStyle(wb,
-                    dateColorMap.getOrDefault(dateStr, "FFFFFF"), true);
-            XSSFCellStyle timeStyle    = buildColorStyle(wb,
-                    ExcelTheme.CRENEAU_COLORS.getOrDefault(heureStr, "FFFFFF"), true);
-            XSSFCellStyle filiereStyle = buildColorStyle(wb,
-                    ExcelTheme.FILIERE_COLORS.getOrDefault(filiereStr, "FFFFFF"), true);
-            XSSFCellStyle rowStyle     = buildColorStyle(wb,
-                    rowNum % 2 == 0 ? ExcelTheme.ROW_PAIR : ExcelTheme.ROW_IMPAIR, false);
-            XSSFCellStyle encStyle     = buildColorStyle(wb,
-                    profColorMap.getOrDefault(encNom, "FFFFFF"), false);
-            XSSFCellStyle p1Style      = buildColorStyle(wb,
-                    profColorMap.getOrDefault(p1Nom,  "FFFFFF"), false);
-            XSSFCellStyle p2Style      = buildColorStyle(wb,
-                    profColorMap.getOrDefault(p2Nom,  "FFFFFF"), false);
+    //         // ── Styles via ExcelTheme ──────────────────────────────
+    //         XSSFCellStyle dateStyle    = buildColorStyle(wb,
+    //                 dateColorMap.getOrDefault(dateStr, "FFFFFF"), true);
+    //         XSSFCellStyle timeStyle    = buildColorStyle(wb,
+    //                 ExcelTheme.CRENEAU_COLORS.getOrDefault(heureStr, "FFFFFF"), true);
+    //         XSSFCellStyle filiereStyle = buildColorStyle(wb,
+    //                 ExcelTheme.FILIERE_COLORS.getOrDefault(filiereStr, "FFFFFF"), true);
+    //         XSSFCellStyle rowStyle     = buildColorStyle(wb,
+    //                 rowNum % 2 == 0 ? ExcelTheme.ROW_PAIR : ExcelTheme.ROW_IMPAIR, false);
+    //         XSSFCellStyle encStyle     = buildColorStyle(wb,
+    //                 profColorMap.getOrDefault(encNom, "FFFFFF"), false);
+    //         XSSFCellStyle p1Style      = buildColorStyle(wb,
+    //                 profColorMap.getOrDefault(p1Nom,  "FFFFFF"), false);
+    //         XSSFCellStyle p2Style      = buildColorStyle(wb,
+    //                 profColorMap.getOrDefault(p2Nom,  "FFFFFF"), false);
 
-            ecrireCell(row, 0, dateStr,                                      dateStyle);
-            ecrireCell(row, 1, heureStr,                                     timeStyle);
-            ecrireCell(row, 2, s.getHeureFin().toString().substring(0, 5),   timeStyle);
-            ecrireCell(row, 3, s.getSalle().getNomSalle(),                   rowStyle);
-            ecrireCell(row, 4, filiereStr,                                   filiereStyle);
-            ecrireCell(row, 5, s.getPfe().getSujet(),                        rowStyle);
-            ecrireCell(row, 6, etuds,                                        rowStyle);
-            ecrireCell(row, 7, encNom,                                       encStyle);
-            ecrireCell(row, 8, p1Nom,                                        p1Style);
-            ecrireCell(row, 9, p2Affiche,                                    p2Style);
+    //         ecrireCell(row, 0, dateStr,                                      dateStyle);
+    //         ecrireCell(row, 1, heureStr,                                     timeStyle);
+    //         ecrireCell(row, 2, s.getHeureFin().toString().substring(0, 5),   timeStyle);
+    //         ecrireCell(row, 3, s.getSalle().getNomSalle(),                   rowStyle);
+    //         ecrireCell(row, 4, filiereStr,                                   filiereStyle);
+    //         ecrireCell(row, 5, s.getPfe().getSujet(),                        rowStyle);
+    //         ecrireCell(row, 6, etuds,                                        rowStyle);
+    //         ecrireCell(row, 7, encNom,                                       encStyle);
+    //         ecrireCell(row, 8, p1Nom,                                        p1Style);
+    //         ecrireCell(row, 9, p2Affiche,                                    p2Style);
 
-            if (etuds.contains("\n")) {
-                XSSFCellStyle wrap = wb.createCellStyle();
-                wrap.cloneStyleFrom(rowStyle);
-                wrap.setWrapText(true);
-                row.getCell(6).setCellStyle(wrap);
-                row.setHeightInPoints(45);
-            }
-            rowNum++;
-        }
+    //         if (etuds.contains("\n")) {
+    //             XSSFCellStyle wrap = wb.createCellStyle();
+    //             wrap.cloneStyleFrom(rowStyle);
+    //             wrap.setWrapText(true);
+    //             row.getCell(6).setCellStyle(wrap);
+    //             row.setHeightInPoints(45);
+    //         }
+    //         rowNum++;
+    //     }
 
-        int[] widths = {13,11,11,16,8,38,35,24,24,28};
-        for (int i = 0; i < widths.length; i++)
-            sheet.setColumnWidth(i, widths[i] * 256);
-        sheet.createFreezePane(0, 1);
-    }
+    //     int[] widths = {13,11,11,16,8,38,35,24,24,28};
+    //     for (int i = 0; i < widths.length; i++)
+    //         sheet.setColumnWidth(i, widths[i] * 256);
+    //     sheet.createFreezePane(0, 1);
+    // }
 
-    //  FEUILLE LÉGENDE
-    private void ecrireFeuilleLegend(XSSFWorkbook wb,
-                                     Map<String, String> profColorMap,
-                                     Map<String, String> dateColorMap) {
-        XSSFSheet     sheet = wb.createSheet("Légende");
-        XSSFCellStyle hdr   = buildHeaderStyle(wb);
+    // //  FEUILLE LÉGENDE
+    // private void ecrireFeuilleLegend(XSSFWorkbook wb,
+    //                                  Map<String, String> profColorMap,
+    //                                  Map<String, String> dateColorMap) {
+    //     XSSFSheet     sheet = wb.createSheet("Légende");
+    //     XSSFCellStyle hdr   = buildHeaderStyle(wb);
 
-        // ── Profs (col 1-2) ────────────────────────────────────────
-        ecrireLegendHeader(sheet, hdr, 1, 1, "Professeur");
-        ecrireLegendHeader(sheet, hdr, 1, 2, "Couleur");
-        int r = 2;
-        for (Map.Entry<String, String> e : profColorMap.entrySet()) {
-            Row row = sheet.createRow(r - 1);
-            ecrireCell(row, 0, e.getKey(), buildColorStyle(wb, e.getValue(), false));
-            ecrireCell(row, 1, "",          buildColorStyle(wb, e.getValue(), true));
-            r++;
-        }
+    //     // ── Profs (col 1-2) ────────────────────────────────────────
+    //     ecrireLegendHeader(sheet, hdr, 1, 1, "Professeur");
+    //     ecrireLegendHeader(sheet, hdr, 1, 2, "Couleur");
+    //     int r = 2;
+    //     for (Map.Entry<String, String> e : profColorMap.entrySet()) {
+    //         Row row = sheet.createRow(r - 1);
+    //         ecrireCell(row, 0, e.getKey(), buildColorStyle(wb, e.getValue(), false));
+    //         ecrireCell(row, 1, "",          buildColorStyle(wb, e.getValue(), true));
+    //         r++;
+    //     }
 
-        // ── Créneaux (col 4-5) ────────────────────────────────────
-        ecrireLegendHeader(sheet, hdr, 1, 4, "Créneau");
-        ecrireLegendHeader(sheet, hdr, 1, 5, "Couleur");
-        r = 2;
-        for (Map.Entry<String, String> e : ExcelTheme.CRENEAU_COLORS.entrySet()) {
-            Row row = getOrCreateRow(sheet, r - 1);
-            ecrireCell(row, 3, e.getKey(), buildColorStyle(wb, e.getValue(), true));
-            ecrireCell(row, 4, "",          buildColorStyle(wb, e.getValue(), true));
-            r++;
-        }
+    //     // ── Créneaux (col 4-5) ────────────────────────────────────
+    //     ecrireLegendHeader(sheet, hdr, 1, 4, "Créneau");
+    //     ecrireLegendHeader(sheet, hdr, 1, 5, "Couleur");
+    //     r = 2;
+    //     for (Map.Entry<String, String> e : ExcelTheme.CRENEAU_COLORS.entrySet()) {
+    //         Row row = getOrCreateRow(sheet, r - 1);
+    //         ecrireCell(row, 3, e.getKey(), buildColorStyle(wb, e.getValue(), true));
+    //         ecrireCell(row, 4, "",          buildColorStyle(wb, e.getValue(), true));
+    //         r++;
+    //     }
 
-        // ── Filières (col 7-8) ────────────────────────────────────
-        ecrireLegendHeader(sheet, hdr, 1, 7, "Filière");
-        ecrireLegendHeader(sheet, hdr, 1, 8, "Couleur");
-        r = 2;
-        for (Map.Entry<String, String> e : ExcelTheme.FILIERE_COLORS.entrySet()) {
-            Row row = getOrCreateRow(sheet, r - 1);
-            ecrireCell(row, 6, e.getKey(), buildColorStyle(wb, e.getValue(), true));
-            ecrireCell(row, 7, "",          buildColorStyle(wb, e.getValue(), true));
-            r++;
-        }
+    //     // ── Filières (col 7-8) ────────────────────────────────────
+    //     ecrireLegendHeader(sheet, hdr, 1, 7, "Filière");
+    //     ecrireLegendHeader(sheet, hdr, 1, 8, "Couleur");
+    //     r = 2;
+    //     for (Map.Entry<String, String> e : ExcelTheme.FILIERE_COLORS.entrySet()) {
+    //         Row row = getOrCreateRow(sheet, r - 1);
+    //         ecrireCell(row, 6, e.getKey(), buildColorStyle(wb, e.getValue(), true));
+    //         ecrireCell(row, 7, "",          buildColorStyle(wb, e.getValue(), true));
+    //         r++;
+    //     }
 
-        // ── Dates (col 10-11) ─────────────────────────────────────
-        ecrireLegendHeader(sheet, hdr, 1, 10, "Date");
-        ecrireLegendHeader(sheet, hdr, 1, 11, "Couleur");
-        r = 2;
-        for (Map.Entry<String, String> e : dateColorMap.entrySet()) {
-            Row row = getOrCreateRow(sheet, r - 1);
-            ecrireCell(row, 9,  e.getKey(), buildColorStyle(wb, e.getValue(), true));
-            ecrireCell(row, 10, "",          buildColorStyle(wb, e.getValue(), true));
-            r++;
-        }
+    //     // ── Dates (col 10-11) ─────────────────────────────────────
+    //     ecrireLegendHeader(sheet, hdr, 1, 10, "Date");
+    //     ecrireLegendHeader(sheet, hdr, 1, 11, "Couleur");
+    //     r = 2;
+    //     for (Map.Entry<String, String> e : dateColorMap.entrySet()) {
+    //         Row row = getOrCreateRow(sheet, r - 1);
+    //         ecrireCell(row, 9,  e.getKey(), buildColorStyle(wb, e.getValue(), true));
+    //         ecrireCell(row, 10, "",          buildColorStyle(wb, e.getValue(), true));
+    //         r++;
+    //     }
 
-        int[] w = {26,10,3,14,10,3,10,10,3,16,10};
-        for (int i = 0; i < w.length; i++)
-            sheet.setColumnWidth(i, w[i] * 256);
-    }
+    //     int[] w = {26,10,3,14,10,3,10,10,3,16,10};
+    //     for (int i = 0; i < w.length; i++)
+    //         sheet.setColumnWidth(i, w[i] * 256);
+    // }
 
-    private void ecrireLegendHeader(XSSFSheet sheet, XSSFCellStyle hdr,
-                                    int row, int col, String label) {
-        Row r = getOrCreateRow(sheet, row - 1);
-        Cell c = r.createCell(col - 1);
-        c.setCellValue(label);
-        c.setCellStyle(hdr);
-    }
+    // private void ecrireLegendHeader(XSSFSheet sheet, XSSFCellStyle hdr,
+    //                                 int row, int col, String label) {
+    //     Row r = getOrCreateRow(sheet, row - 1);
+    //     Cell c = r.createCell(col - 1);
+    //     c.setCellValue(label);
+    //     c.setCellStyle(hdr);
+    // }
 
-    private Row getOrCreateRow(Sheet sheet, int index) {
-        Row r = sheet.getRow(index);
-        return r != null ? r : sheet.createRow(index);
-    }
+    // private Row getOrCreateRow(Sheet sheet, int index) {
+    //     Row r = sheet.getRow(index);
+    //     return r != null ? r : sheet.createRow(index);
+    // }
 
     //  FEUILLE ANOMALIES
-    private void ecrireFeuilleAnomalies(XSSFWorkbook wb, List<String> anomalies) {
-        XSSFSheet     sheet = wb.createSheet("Anomalies");
-        XSSFCellStyle hdr   = buildHeaderStyle(wb);
+    // private void ecrireFeuilleAnomalies(XSSFWorkbook wb, List<String> anomalies) {
+    //     XSSFSheet     sheet = wb.createSheet("Anomalies");
+    //     XSSFCellStyle hdr   = buildHeaderStyle(wb);
 
-        Cell c = sheet.createRow(0).createCell(0);
-        c.setCellValue("Anomalies (" + anomalies.size() + ")");
-        c.setCellStyle(hdr);
-        sheet.setColumnWidth(0, 120 * 256);
+    //     Cell c = sheet.createRow(0).createCell(0);
+    //     c.setCellValue("Anomalies (" + anomalies.size() + ")");
+    //     c.setCellStyle(hdr);
+    //     sheet.setColumnWidth(0, 120 * 256);
 
-        if (anomalies.isEmpty()) {
-            Cell ok = sheet.createRow(1).createCell(0);
-            ok.setCellValue("✔ Aucune anomalie — planning valide.");
-            ok.setCellStyle(buildColorStyleWithFont(wb,
-                    ExcelTheme.ANOMALIE_OK_BG, ExcelTheme.ANOMALIE_OK_FG));
-        } else {
-            for (int i = 0; i < anomalies.size(); i++) {
-                Cell cell = sheet.createRow(i + 1).createCell(0);
-                cell.setCellValue(anomalies.get(i));
-                cell.setCellStyle(buildColorStyleWithFont(wb,
-                        ExcelTheme.ANOMALIE_ERR_BG, ExcelTheme.ANOMALIE_ERR_FG));
-            }
-        }
-    }
+    //     if (anomalies.isEmpty()) {
+    //         Cell ok = sheet.createRow(1).createCell(0);
+    //         ok.setCellValue("✔ Aucune anomalie — planning valide.");
+    //         ok.setCellStyle(buildColorStyleWithFont(wb,
+    //                 ExcelTheme.ANOMALIE_OK_BG, ExcelTheme.ANOMALIE_OK_FG));
+    //     } else {
+    //         for (int i = 0; i < anomalies.size(); i++) {
+    //             Cell cell = sheet.createRow(i + 1).createCell(0);
+    //             cell.setCellValue(anomalies.get(i));
+    //             cell.setCellStyle(buildColorStyleWithFont(wb,
+    //                     ExcelTheme.ANOMALIE_ERR_BG, ExcelTheme.ANOMALIE_ERR_FG));
+    //         }
+    //     }
+    // }
 
     //  IMPORT EXCEL — SALLES
     @Transactional
@@ -569,65 +584,65 @@ public class SalleServiceImpl
     }
 
     //  STYLES — délèguent à ExcelTheme pour les couleurs
-    private XSSFCellStyle buildHeaderStyle(XSSFWorkbook wb) {
-        XSSFCellStyle s = wb.createCellStyle();
-        XSSFFont f = wb.createFont();
-        f.setBold(true);
-        f.setFontName("Arial");
-        f.setFontHeightInPoints((short) 11);
-        f.setColor(new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_FG), null));
-        s.setFont(f);
-        s.setFillForegroundColor(
-                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG), null));
-        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        s.setAlignment(HorizontalAlignment.CENTER);
-        s.setVerticalAlignment(VerticalAlignment.CENTER);
-        setBorders(s);
-        return s;
-    }
+    // private XSSFCellStyle buildHeaderStyle(XSSFWorkbook wb) {
+    //     XSSFCellStyle s = wb.createCellStyle();
+    //     XSSFFont f = wb.createFont();
+    //     f.setBold(true);
+    //     f.setFontName("Arial");
+    //     f.setFontHeightInPoints((short) 11);
+    //     f.setColor(new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_FG), null));
+    //     s.setFont(f);
+    //     s.setFillForegroundColor(
+    //             new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG), null));
+    //     s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    //     s.setAlignment(HorizontalAlignment.CENTER);
+    //     s.setVerticalAlignment(VerticalAlignment.CENTER);
+    //     setBorders(s);
+    //     return s;
+    // }
 
-    private XSSFCellStyle buildColorStyle(XSSFWorkbook wb, String hex, boolean center) {
-        XSSFCellStyle s = wb.createCellStyle();
-        XSSFFont f = wb.createFont();
-        f.setFontName("Arial");
-        f.setFontHeightInPoints((short) 10);
-        s.setFont(f);
-        s.setFillForegroundColor(new XSSFColor(ExcelTheme.hexToBytes(hex), null));
-        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        s.setAlignment(center ? HorizontalAlignment.CENTER : HorizontalAlignment.LEFT);
-        s.setVerticalAlignment(VerticalAlignment.CENTER);
-        setBorders(s);
-        return s;
-    }
+    // private XSSFCellStyle buildColorStyle(XSSFWorkbook wb, String hex, boolean center) {
+    //     XSSFCellStyle s = wb.createCellStyle();
+    //     XSSFFont f = wb.createFont();
+    //     f.setFontName("Arial");
+    //     f.setFontHeightInPoints((short) 10);
+    //     s.setFont(f);
+    //     s.setFillForegroundColor(new XSSFColor(ExcelTheme.hexToBytes(hex), null));
+    //     s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    //     s.setAlignment(center ? HorizontalAlignment.CENTER : HorizontalAlignment.LEFT);
+    //     s.setVerticalAlignment(VerticalAlignment.CENTER);
+    //     setBorders(s);
+    //     return s;
+    // }
 
-    private XSSFCellStyle buildColorStyleWithFont(XSSFWorkbook wb,
-                                                  String hexBg, String hexFg) {
-        XSSFCellStyle s = wb.createCellStyle();
-        XSSFFont f = wb.createFont();
-        f.setFontName("Arial");
-        f.setFontHeightInPoints((short) 10);
-        f.setColor(new XSSFColor(ExcelTheme.hexToBytes(hexFg), null));
-        s.setFont(f);
-        s.setFillForegroundColor(new XSSFColor(ExcelTheme.hexToBytes(hexBg), null));
-        s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        s.setAlignment(HorizontalAlignment.LEFT);
-        s.setVerticalAlignment(VerticalAlignment.CENTER);
-        setBorders(s);
-        return s;
-    }
+    // private XSSFCellStyle buildColorStyleWithFont(XSSFWorkbook wb,
+    //                                               String hexBg, String hexFg) {
+    //     XSSFCellStyle s = wb.createCellStyle();
+    //     XSSFFont f = wb.createFont();
+    //     f.setFontName("Arial");
+    //     f.setFontHeightInPoints((short) 10);
+    //     f.setColor(new XSSFColor(ExcelTheme.hexToBytes(hexFg), null));
+    //     s.setFont(f);
+    //     s.setFillForegroundColor(new XSSFColor(ExcelTheme.hexToBytes(hexBg), null));
+    //     s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    //     s.setAlignment(HorizontalAlignment.LEFT);
+    //     s.setVerticalAlignment(VerticalAlignment.CENTER);
+    //     setBorders(s);
+    //     return s;
+    // }
 
-    private void setBorders(CellStyle s) {
-        s.setBorderTop(BorderStyle.THIN);
-        s.setBorderBottom(BorderStyle.THIN);
-        s.setBorderLeft(BorderStyle.THIN);
-        s.setBorderRight(BorderStyle.THIN);
-    }
+    // private void setBorders(CellStyle s) {
+    //     s.setBorderTop(BorderStyle.THIN);
+    //     s.setBorderBottom(BorderStyle.THIN);
+    //     s.setBorderLeft(BorderStyle.THIN);
+    //     s.setBorderRight(BorderStyle.THIN);
+    // }
 
-    private void ecrireCell(Row row, int col, String val, CellStyle style) {
-        Cell cell = row.createCell(col);
-        cell.setCellValue(val != null ? val : "");
-        cell.setCellStyle(style);
-    }
+    // private void ecrireCell(Row row, int col, String val, CellStyle style) {
+    //     Cell cell = row.createCell(col);
+    //     cell.setCellValue(val != null ? val : "");
+    //     cell.setCellStyle(style);
+    // }
 
     //  UTILITAIRES TEMPORELS
     private boolean chevauchement(LocalTime d1, LocalTime f1,
@@ -677,11 +692,11 @@ public class SalleServiceImpl
         return ids;
     }
 
-    @Override
-        public byte[] exportPlanningPDF(Long versionId) throws IOException {
-        ImportVersion version = versionRepository.findById(versionId).get();
-        List<Soutenance> soutenances = soutenanceRepository
-                .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
-        return PDFGenerator.exportPlanningPDF(soutenances);
-        }
+    // @Override
+    //     public byte[] exportPlanningPDF(Long versionId) throws IOException {
+    //     ImportVersion version = versionRepository.findById(versionId).get();
+    //     List<Soutenance> soutenances = soutenanceRepository
+    //             .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
+    //     return PDFGenerator.exportPlanningPDF(soutenances);
+    //     }
 }

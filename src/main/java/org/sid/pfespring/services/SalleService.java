@@ -8,7 +8,6 @@ import org.sid.pfespring.dto.ResponseSalleDTO;
 import org.sid.pfespring.dto.ResponseSoutenanceDTO;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Soutenance;
-import java.io.IOException;
 public interface SalleService{
 
     /**
@@ -33,8 +32,8 @@ public interface SalleService{
     /**
      * Génère le fichier Excel du planning trié.
      */
-    byte[] exportPlanningExcel(Long versionId) throws IOException;
-    byte[] exportPlanningPDF(Long versionId) throws IOException;
+    // byte[] exportPlanningExcel(Long versionId) throws IOException;
+    // byte[] exportPlanningPDF(Long versionId) throws IOException;
 
     List<String> detecterAnomalies(List<Soutenance> soutenances);
 }

@@ -1,7 +1,5 @@
 package org.sid.pfespring.services;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,23 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.sid.pfespring.dto.RequestJuryDTO;
 import org.sid.pfespring.dto.ResponseJuryDTO;
 import org.sid.pfespring.exception.BusinessException;
 import org.sid.pfespring.mapper.JuryMapper;
-import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Jury;
 import org.sid.pfespring.model.PFE;
@@ -36,8 +21,6 @@ import org.sid.pfespring.repository.JuryRepository;
 import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
 import org.sid.pfespring.repository.SoutenanceRepository;
-import org.sid.pfespring.utils.ExcelTheme;
-import org.sid.pfespring.utils.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -239,162 +222,162 @@ public class JuryServiceImpl
 
 
 
-    @Override
-    public byte[] exportJuryExcel(Long id) throws IOException {
-        ImportVersion current_version = versrepository.findById(id).get();
-        List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
+//     @Override
+//     public byte[] exportJuryExcel(Long id) throws IOException {
+//         ImportVersion current_version = versrepository.findById(id).get();
+//         List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
 
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            Map<String, CellStyle> styles = createStyles(workbook);
-            Sheet sheet = workbook.createSheet("Planning des Jurys PFE");
+//         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+//             Map<String, CellStyle> styles = createStyles(workbook);
+//             Sheet sheet = workbook.createSheet("Planning des Jurys PFE");
 
-            sheet.setColumnWidth(0, 4000);
-            sheet.setColumnWidth(1, 15000);
-            sheet.setColumnWidth(2, 8000);
-            sheet.setColumnWidth(3, 9000);
-            sheet.setColumnWidth(4, 9000);
-            sheet.setColumnWidth(5, 9000);
+//             sheet.setColumnWidth(0, 4000);
+//             sheet.setColumnWidth(1, 15000);
+//             sheet.setColumnWidth(2, 8000);
+//             sheet.setColumnWidth(3, 9000);
+//             sheet.setColumnWidth(4, 9000);
+//             sheet.setColumnWidth(5, 9000);
 
-            Row headerRow = sheet.createRow(0);
-            headerRow.setHeightInPoints(25);
-            String[] headers = {"N°", "Sujet PFE", "CNEs", "Encadrant", "Professeur 1", "Professeur 2"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(styles.get("header"));
-            }
+//             Row headerRow = sheet.createRow(0);
+//             headerRow.setHeightInPoints(25);
+//             String[] headers = {"N°", "Sujet PFE", "CNEs", "Encadrant", "Professeur 1", "Professeur 2"};
+//             for (int i = 0; i < headers.length; i++) {
+//                 Cell cell = headerRow.createCell(i);
+//                 cell.setCellValue(headers[i]);
+//                 cell.setCellStyle(styles.get("header"));
+//             }
 
-            int rowNum = 1;
-            for (Jury jury : jurys) {
-                Row row = sheet.createRow(rowNum);
-                row.setHeightInPoints(20);
-                String parity = rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center";
+//             int rowNum = 1;
+//             for (Jury jury : jurys) {
+//                 Row row = sheet.createRow(rowNum);
+//                 row.setHeightInPoints(20);
+//                 String parity = rowNum % 2 == 0 ? "cell_even_center" : "cell_odd_center";
 
-                Cell cell0 = row.createCell(0);
-                cell0.setCellValue(rowNum);
-                cell0.setCellStyle(styles.get(parity));
+//                 Cell cell0 = row.createCell(0);
+//                 cell0.setCellValue(rowNum);
+//                 cell0.setCellStyle(styles.get(parity));
 
-                Cell cell1 = row.createCell(1);
-                cell1.setCellValue(jury.getPfe().getSujet());
-                cell1.setCellStyle(styles.get(parity));
+//                 Cell cell1 = row.createCell(1);
+//                 cell1.setCellValue(jury.getPfe().getSujet());
+//                 cell1.setCellStyle(styles.get(parity));
 
-                Cell cell2 = row.createCell(2);
-                String cnes = jury.getPfe().getEtudiants().stream()
-                        .map(Etudiant::getCne)
-                        .collect(Collectors.joining(", "));
-                cell2.setCellValue(cnes);
-                cell2.setCellStyle(styles.get(parity));
+//                 Cell cell2 = row.createCell(2);
+//                 String cnes = jury.getPfe().getEtudiants().stream()
+//                         .map(Etudiant::getCne)
+//                         .collect(Collectors.joining(", "));
+//                 cell2.setCellValue(cnes);
+//                 cell2.setCellStyle(styles.get(parity));
 
-                Cell cell3 = row.createCell(3);
-                String encadrant = jury.getEncadrant().getNom() + " " + jury.getEncadrant().getPrenom();
-                cell3.setCellValue(encadrant);
-                cell3.setCellStyle(getOrCreateProfStyle(styles, workbook, encadrant));
+//                 Cell cell3 = row.createCell(3);
+//                 String encadrant = jury.getEncadrant().getNom() + " " + jury.getEncadrant().getPrenom();
+//                 cell3.setCellValue(encadrant);
+//                 cell3.setCellStyle(getOrCreateProfStyle(styles, workbook, encadrant));
 
-                Cell cell4 = row.createCell(4);
-                String prof1 = jury.getProf1() != null
-                        ? jury.getProf1().getNom() + " " + jury.getProf1().getPrenom()
-                        : "Non assigné";
-                cell4.setCellValue(prof1);
-                cell4.setCellStyle(jury.getProf1() != null
-                        ? getOrCreateProfStyle(styles, workbook, prof1)
-                        : styles.get(parity));
+//                 Cell cell4 = row.createCell(4);
+//                 String prof1 = jury.getProf1() != null
+//                         ? jury.getProf1().getNom() + " " + jury.getProf1().getPrenom()
+//                         : "Non assigné";
+//                 cell4.setCellValue(prof1);
+//                 cell4.setCellStyle(jury.getProf1() != null
+//                         ? getOrCreateProfStyle(styles, workbook, prof1)
+//                         : styles.get(parity));
 
-                Cell cell5 = row.createCell(5);
-                String prof2 = jury.getProf2() != null
-                        ? jury.getProf2().getNom() + " " + jury.getProf2().getPrenom()
-                        : "Non assigné";
-                cell5.setCellValue(prof2);
-                cell5.setCellStyle(jury.getProf2() != null
-                        ? getOrCreateProfStyle(styles, workbook, prof2)
-                        : styles.get(parity));
+//                 Cell cell5 = row.createCell(5);
+//                 String prof2 = jury.getProf2() != null
+//                         ? jury.getProf2().getNom() + " " + jury.getProf2().getPrenom()
+//                         : "Non assigné";
+//                 cell5.setCellValue(prof2);
+//                 cell5.setCellStyle(jury.getProf2() != null
+//                         ? getOrCreateProfStyle(styles, workbook, prof2)
+//                         : styles.get(parity));
 
-                rowNum++;
-            }
+//                 rowNum++;
+//             }
 
-            sheet.createFreezePane(0, 1);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            workbook.write(out);
-            return out.toByteArray();
-        }
-    }
+//             sheet.createFreezePane(0, 1);
+//             ByteArrayOutputStream out = new ByteArrayOutputStream();
+//             workbook.write(out);
+//             return out.toByteArray();
+//         }
+//     }
 
-    private CellStyle getOrCreateProfStyle(Map<String, CellStyle> styles,
-                                           XSSFWorkbook workbook,
-                                           String profName) {
-        String key = "prof_" + Math.abs(profName.hashCode());
-        if (!styles.containsKey(key)) {
-            String hex = ExcelTheme.PROF_PALETTE[
-                    Math.abs(profName.hashCode()) % ExcelTheme.PROF_PALETTE.length];
-            styles.put(key, createProfStyle(workbook, hex));
-        }
-        return styles.get(key);
-    }
+//     private CellStyle getOrCreateProfStyle(Map<String, CellStyle> styles,
+//                                            XSSFWorkbook workbook,
+//                                            String profName) {
+//         String key = "prof_" + Math.abs(profName.hashCode());
+//         if (!styles.containsKey(key)) {
+//             String hex = ExcelTheme.PROF_PALETTE[
+//                     Math.abs(profName.hashCode()) % ExcelTheme.PROF_PALETTE.length];
+//             styles.put(key, createProfStyle(workbook, hex));
+//         }
+//         return styles.get(key);
+//     }
 
-    private Map<String, CellStyle> createStyles(XSSFWorkbook workbook) {
-        Map<String, CellStyle> styles = new HashMap<>();
+//     private Map<String, CellStyle> createStyles(XSSFWorkbook workbook) {
+//         Map<String, CellStyle> styles = new HashMap<>();
 
-        CellStyle headerStyle = workbook.createCellStyle();
-        headerStyle.setFillForegroundColor(
-                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG), null));
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-        headerFont.setFontHeightInPoints((short) 11);
-        headerStyle.setFont(headerFont);
-        headerStyle.setAlignment(HorizontalAlignment.CENTER);
-        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        headerStyle.setBorderBottom(BorderStyle.THIN);
-        headerStyle.setBorderTop(BorderStyle.THIN);
-        headerStyle.setBorderLeft(BorderStyle.THIN);
-        headerStyle.setBorderRight(BorderStyle.THIN);
-        styles.put("header", headerStyle);
+//         CellStyle headerStyle = workbook.createCellStyle();
+//         headerStyle.setFillForegroundColor(
+//                 new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.HEADER_BG), null));
+//         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//         Font headerFont = workbook.createFont();
+//         headerFont.setBold(true);
+//         headerFont.setColor(IndexedColors.WHITE.getIndex());
+//         headerFont.setFontHeightInPoints((short) 11);
+//         headerStyle.setFont(headerFont);
+//         headerStyle.setAlignment(HorizontalAlignment.CENTER);
+//         headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+//         headerStyle.setBorderBottom(BorderStyle.THIN);
+//         headerStyle.setBorderTop(BorderStyle.THIN);
+//         headerStyle.setBorderLeft(BorderStyle.THIN);
+//         headerStyle.setBorderRight(BorderStyle.THIN);
+//         styles.put("header", headerStyle);
 
-        CellStyle oddCenter = workbook.createCellStyle();
-        oddCenter.setBorderBottom(BorderStyle.THIN);
-        oddCenter.setBorderLeft(BorderStyle.THIN);
-        oddCenter.setBorderRight(BorderStyle.THIN);
-        oddCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        oddCenter.setAlignment(HorizontalAlignment.CENTER);
-        oddCenter.setFillForegroundColor(
-                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_IMPAIR), null));
-        oddCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        styles.put("cell_odd_center", oddCenter);
+//         CellStyle oddCenter = workbook.createCellStyle();
+//         oddCenter.setBorderBottom(BorderStyle.THIN);
+//         oddCenter.setBorderLeft(BorderStyle.THIN);
+//         oddCenter.setBorderRight(BorderStyle.THIN);
+//         oddCenter.setVerticalAlignment(VerticalAlignment.CENTER);
+//         oddCenter.setAlignment(HorizontalAlignment.CENTER);
+//         oddCenter.setFillForegroundColor(
+//                 new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_IMPAIR), null));
+//         oddCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//         styles.put("cell_odd_center", oddCenter);
 
-        CellStyle evenCenter = workbook.createCellStyle();
-        evenCenter.setBorderBottom(BorderStyle.THIN);
-        evenCenter.setBorderLeft(BorderStyle.THIN);
-        evenCenter.setBorderRight(BorderStyle.THIN);
-        evenCenter.setVerticalAlignment(VerticalAlignment.CENTER);
-        evenCenter.setAlignment(HorizontalAlignment.CENTER);
-        evenCenter.setFillForegroundColor(
-                new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_PAIR), null));
-        evenCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        styles.put("cell_even_center", evenCenter);
+//         CellStyle evenCenter = workbook.createCellStyle();
+//         evenCenter.setBorderBottom(BorderStyle.THIN);
+//         evenCenter.setBorderLeft(BorderStyle.THIN);
+//         evenCenter.setBorderRight(BorderStyle.THIN);
+//         evenCenter.setVerticalAlignment(VerticalAlignment.CENTER);
+//         evenCenter.setAlignment(HorizontalAlignment.CENTER);
+//         evenCenter.setFillForegroundColor(
+//                 new XSSFColor(ExcelTheme.hexToBytes(ExcelTheme.ROW_PAIR), null));
+//         evenCenter.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//         styles.put("cell_even_center", evenCenter);
 
-        return styles;
-    }
+//         return styles;
+//     }
 
-    private CellStyle createProfStyle(XSSFWorkbook workbook, String hexColor) {
-        CellStyle style = workbook.createCellStyle();
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setFillForegroundColor(
-                new XSSFColor(ExcelTheme.hexToBytes(hexColor), null));
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        return style;
-    }
+//     private CellStyle createProfStyle(XSSFWorkbook workbook, String hexColor) {
+//         CellStyle style = workbook.createCellStyle();
+//         style.setBorderBottom(BorderStyle.THIN);
+//         style.setBorderLeft(BorderStyle.THIN);
+//         style.setBorderRight(BorderStyle.THIN);
+//         style.setVerticalAlignment(VerticalAlignment.CENTER);
+//         style.setAlignment(HorizontalAlignment.CENTER);
+//         style.setFillForegroundColor(
+//                 new XSSFColor(ExcelTheme.hexToBytes(hexColor), null));
+//         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//         return style;
+//     }
 
 
-    @Override
-    public byte[] exportJuryPDF(Long id) throws IOException {
-        ImportVersion current_version = versrepository.findById(id).get();
-        List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
-        return PDFGenerator.exportJuryPDF(jurys);
-    }
+//     @Override
+//     public byte[] exportJuryPDF(Long id) throws IOException {
+//         ImportVersion current_version = versrepository.findById(id).get();
+//         List<Jury> jurys = ((JuryRepository) repository).findByVersion(current_version);
+//         return PDFGenerator.exportJuryPDF(jurys);
+//     }
 
 
     @Override
