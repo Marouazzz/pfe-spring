@@ -49,10 +49,7 @@ public class PvController {
 
     @PostMapping("/generer")
     public String genererPVs(HttpSession session) throws IOException {
-        if (session.getAttribute("etape1") == null ||
-                session.getAttribute("etape2") == null ||
-                session.getAttribute("etape3") == null ||
-                session.getAttribute("etape4") == null) {
+        if (!Boolean.TRUE.equals(session.getAttribute("etape4"))) {
             return "redirect:/erreur?message=Vous devez compléter les étapes précédentes";
         }
         Long id = (Long) session.getAttribute("versionId");
