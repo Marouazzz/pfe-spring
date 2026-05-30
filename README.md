@@ -4,7 +4,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-blue?logo=mysql)](https://www.mysql.com/)
 [![Maven](https://img.shields.io/badge/Build-Maven-red?logo=apache-maven)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 
 Un système de gestion complet et intelligent pour l'organisation et le suivi des soutenances de Projets de Fin d'Études (PFE). Ce projet automatise la génération des plannings, l'affectation des jurys, et la gestion administrative associée.
 
@@ -37,7 +37,9 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
  **Tableau de bord analytique** — Visualisation en temps réel des données et des anomalies.
 
  **Gestion multi-versions** — Support de multiples campagnes d'importation/planification.
+##  Démo Vidéo
 
+ **[Regarder la démo complète sur Google Drive]((https://drive.google.com/drive/folders/1QUVHjKsvHZ1tSZ4D5amzbYrwgBoPck1Z?usp=drive_link))**
 ##  Fonctionnalités
 
 ###  1. Import et Gestion des Données
@@ -69,7 +71,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 - **Archive ZIP** — Regroupement de tous les PV dans une archive téléchargeable.
 - **Documents structurés** — PV professionnels avec informations du jury, de l'étudiant et de la soutenance.
 
-### 📊 5. Tableau de Bord Analytique
+###  5. Tableau de Bord Analytique
 
 - **Statistiques globales** — Total PFEs, encadrants, soutenances, salles, jours.
 - **PFEs par encadrant** — Visualisation graphique de la charge d'encadrement.
@@ -470,9 +472,7 @@ Soutenances validées → Génération PV Word → Archivage ZIP → Télécharg
 ##  Contributeurs
   **https://github.com/ae-saouiqui**  |  **https://github.com/hajaryaz** 
 
-##  Licence
 
-Ce projet est sous licence **MIT**. Consultez le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
