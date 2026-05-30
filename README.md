@@ -1,4 +1,4 @@
-# 📊 Gestion des Soutenances de PFE
+#  Gestion des Soutenances de PFE
 
 [![Java](https://img.shields.io/badge/Java-17-orange?logo=java)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
@@ -8,7 +8,7 @@
 
 Un système de gestion complet et intelligent pour l'organisation et le suivi des soutenances de Projets de Fin d'Études (PFE). Ce projet automatise la génération des plannings, l'affectation des jurys, et la gestion administrative associée.
 
-## 📖 Table des matières
+##  Table des matières
 
 - [Présentation](#présentation)
 - [Fonctionnalités](#fonctionnalités)
@@ -22,32 +22,32 @@ Un système de gestion complet et intelligent pour l'organisation et le suivi de
 - [Contributeurs](#contributeurs)
 - [Licence](#licence)
 
-## 🎯 Présentation
+##  Présentation
 
 Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégralité du cycle de vie des soutenances de PFE. Les objectifs principaux sont :
 
-✅ **Gestion complète des soutenances** — Importation, affectation, planification et suivi.
+ **Gestion complète des soutenances** — Importation, affectation, planification et suivi.
 
-✅ **Génération automatisée du planning** — Algorithmes d'optimisation avec respect strict des contraintes.
+ **Génération automatisée du planning** — Algorithmes d'optimisation avec respect strict des contraintes.
 
-✅ **Gestion des affectations** — Assignation intelligente des jurys et des encadrants.
+ **Gestion des affectations** — Assignation intelligente des jurys et des encadrants.
 
-✅ **Génération administrative** — Création automatique des procès-verbaux (PV) en format Word.
+ **Génération administrative** — Création automatique des procès-verbaux (PV) en format Word.
 
-✅ **Tableau de bord analytique** — Visualisation en temps réel des données et des anomalies.
+ **Tableau de bord analytique** — Visualisation en temps réel des données et des anomalies.
 
-✅ **Gestion multi-versions** — Support de multiples campagnes d'importation/planification.
+ **Gestion multi-versions** — Support de multiples campagnes d'importation/planification.
 
-## ✨ Fonctionnalités
+##  Fonctionnalités
 
-### 📥 1. Import et Gestion des Données
+###  1. Import et Gestion des Données
 
 - **Import Excel multi-sources** — Importation des étudiants, professeurs, salles et PFEs depuis un fichier Excel structuré.
 - **Gestion des versions** — Possibilité de maintenir plusieurs versions de données (idempotence sur les imports).
 - **Validation automatique** — Vérification de la conformité des données importées.
 - **Gestion des filières** — Support de multiples filières/spécialités d'études.
 
-### 👥 2. Gestion des Entités
+###  2. Gestion des Entités
 
 - **Étudiants** — Gestion des étudiants avec CNE, nom, prénom, filière et PFE associé.
 - **Professeurs** — Gestion des enseignants avec spécialités et disponibilités.
@@ -55,7 +55,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 - **Jurys** — Affectation automatique des jurys (encadrant + 2 professeurs).
 - **Salles** — Gestion des salles de soutenance avec capacité et disponibilité.
 
-### 📋 3. Planification Intelligente
+###  3. Planification Intelligente
 
 - **Génération automatique du planning** — Algorithmes d'optimisation pour placer les soutenances.
 - **Respect des contraintes métier** — Évite les conflits de salles, de professeurs et de jurys.
@@ -63,7 +63,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 - **Configuration flexible** — Paramétrage des jours de soutenance, durée des créneaux, etc.
 - **Rapports de comparaison** — Analyse détaillée des différences entre solutions.
 
-### 📄 4. Génération Administrative
+###  4. Génération Administrative
 
 - **Génération des procès-verbaux** — Création automatique des PV en format Word (`.docx`) pour chaque soutenance.
 - **Archive ZIP** — Regroupement de tous les PV dans une archive téléchargeable.
@@ -78,18 +78,18 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 - **Anomalies et alertes** — Détection des problèmes d'affectation ou de surcharge.
 - **Indicateurs de qualité** — Métriques de l'utilisation des salles et des créneaux.
 
-### 🔧 6. Export et Téléchargement
+###  6. Export et Téléchargement
 
 - **Export Excel** — Export du planning en fichier Excel structuré.
 - **Export PDF** — Génération du planning en format PDF.
 - **Téléchargement des PV** — Archive ZIP contenant tous les procès-verbaux générés.
 
-### 🔐 7. Gestion de Session
+###  7. Gestion de Session
 
 - **Versions de données en session** — Chaque session utilisateur peut avoir sa version active.
 - **Persistance des données** — Toutes les données sont stockées dans la base de données MySQL.
 
-## 🏗️ Architecture
+##  Architecture
 
 ### Couches applicatives
 
@@ -120,7 +120,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 | **SchedulingExportService** | Export Excel et PDF des plannings |
 | **DashboardService** | Calcul des statistiques et anomalies |
 | **FileSystemService** | Génération des PV et ZIP |
-| **SalleService** | Import et gestion des salles |
+| **SalleService** | Import et gestion des salles rt soutenances |
 | **ProfService** | Import et gestion des professeurs |
 | **JuryService** | Affectation des jurys et génération des PV |
 
@@ -151,7 +151,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
               └──────────────┘
 ```
 
-## 🛠️ Technologies utilisées
+##  Technologies utilisées
 
 ### Backend
 
@@ -164,7 +164,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 | **MySQL Connector** | - | Driver JDBC MySQL |
 | **Lombok** | - | Génération de code (getters, setters, constructeurs) |
 | **Validation** | - | Validation JSR-303 |
-| **MyBatis Mapper** | 6.0.0 | Requêtes SQL génériques |
+
 
 ### Génération de documents
 
@@ -196,14 +196,14 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
 |------|---------|-------|
 | **MySQL** | - | Stockage persistant des données |
 
-## 📥 Installation
+##  Installation
 
 ### Prérequis
 
-- ✅ **Java 17** ou supérieur
-- ✅ **Maven 3.8+**
-- ✅ **MySQL 8.0+**
-- ✅ **Git**
+-  **Java 17** ou supérieur
+-  **Maven 3.8+**
+-  **MySQL 8.0+**
+-  **Git**
 
 ### Étapes d'installation
 
@@ -244,9 +244,9 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-L'application sera accessible à : **http://localhost:8080/home**
+L'application sera accessible à : **http://localhost:8080/home** ou autre port si configurable
 
-## 🎮 Utilisation
+##  Utilisation
 
 ### Flux de travail principal
 
@@ -341,7 +341,7 @@ Le fichier Excel doit contenir les feuilles suivantes :
 | **Planification** | `/scheduling/form` | Configuration du planning |
 | **Résultats** | `/scheduling/result` | Comparaison et validation des solutions |
 
-## 📂 Structure du projet
+##  Structure du projet
 
 ```
 pfe-spring/
@@ -411,7 +411,7 @@ pfe-spring/
 └── README.md                            # Ce fichier
 ```
 
-## 🔄 Workflows
+##  Workflows
 
 ### Workflow 1 : Import et initialisation
 
@@ -445,35 +445,32 @@ Soutenances validées → Génération PV Word → Archivage ZIP → Télécharg
 
 **Services impliqués** : `FileSystemService`, `JuryService`
 
-## 🚀 Perspectives d'évolution
+##  Perspectives d'évolution
 
 ### Court terme
 
-- 🔔 **Notifications** — Alertes email pour les changements de planning.
-- 📱 **API REST** — Endpoints publics pour intégration externe.
-- 🔐 **Authentification** — Implémentation de Spring Security avec rôles (Admin, Professeur, Étudiant).
+-  **Notifications** — Alertes email pour les changements de planning.
+-  **API REST** — Endpoints publics pour intégration externe.
+-  **Authentification** — Implémentation de Spring Security avec rôles (Admin, Professeur, Étudiant).
 
 ### Moyen terme
 
-- 📱 **Application mobile** — Interface mobile pour consultation du planning.
-- 📊 **Rapports avancés** — Génération de rapports Excel complexes avec formules.
-- 🤖 **IA pour optimisation** — Machine Learning pour améliorer l'algorithme de planification.
-- 🌍 **Multilingue** — Support de plusieurs langues (FR, EN, AR).
+-  **Application mobile** — Interface mobile pour consultation du planning.
+-  **Rapports avancés** — Génération de rapports Excel complexes avec formules.
+-  **IA pour optimisation** — Machine Learning pour améliorer l'algorithme de planification.
+-  **Multilingue** — Support de plusieurs langues (FR, EN, AR).
 
 ### Long terme
 
-- ☁️ **Déploiement Cloud** — Migration vers AWS/Azure/GCP.
-- 🔗 **Intégration d'annuaires** — Connexion avec LDAP/Active Directory.
-- 📈 **Analytics avancées** — Dashboards interactifs avec Tableau/Power BI.
-- 🔐 **SSO** — Intégration OAuth 2.0 et SAML.
+-  **Déploiement Cloud** — Migration vers AWS/Azure/GCP.
+-  **Intégration d'annuaires** — Connexion avec LDAP/Active Directory.
+-  **Analytics avancées** — Dashboards interactifs avec Tableau/Power BI.
+-  **SSO** — Intégration OAuth 2.0 et SAML.
 
-## 👥 Contributeurs
+##  Contributeurs
+  **https://github.com/ae-saouiqui**  |  **https://github.com/hajaryaz** 
 
-| Nom | Rôle | Contribution |
-|-----|------|-------------|
-| **Marouazzz** | Développeur principal | Architecture, services de planification, backend |
-
-## 📄 Licence
+##  Licence
 
 Ce projet est sous licence **MIT**. Consultez le fichier [LICENSE](LICENSE) pour plus de détails.
 
