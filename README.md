@@ -39,7 +39,7 @@ Ce projet Spring Boot offre une plateforme centralisée pour gérer l'intégrali
  **Gestion multi-versions** — Support de multiples campagnes d'importation/planification.
 ##  Démo Vidéo
 
- **[Regarder la démo complète sur Google Drive]((https://drive.google.com/drive/folders/1QUVHjKsvHZ1tSZ4D5amzbYrwgBoPck1Z?usp=drive_link))**
+ **[Regarder la démo complète sur Google Drive](https://drive.google.com/drive/folders/1QUVHjKsvHZ1tSZ4D5amzbYrwgBoPck1Z?usp=drive_link)**
 ##  Fonctionnalités
 
 ###  1. Import et Gestion des Données
