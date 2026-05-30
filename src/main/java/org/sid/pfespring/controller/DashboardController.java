@@ -1,13 +1,6 @@
 package org.sid.pfespring.controller;
-
-import java.util.List;
-
-import org.sid.pfespring.model.ImportVersion;
-import org.sid.pfespring.model.Soutenance;
-import org.sid.pfespring.repository.ImportVersionRepository;
-import org.sid.pfespring.repository.SoutenanceRepository;
+import org.sid.pfespring.model.scheduling.SchedulingSolution;
 import org.sid.pfespring.services.DashboardService;
-import org.sid.pfespring.services.SalleService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,59 +8,68 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.util.*;
+
+/**
+ * Tableau de bord — statistiques et vérification de conformité.
+ *
+ * Sources de données (par priorité) :
+ *   1. SchedulingSolution en session (validatedSolution) → données "live" du dernier calcul
+ *   2. Table soutenances BDD (version courante)          → données persistées
+ *
+ * Graphiques :
+ *   - PFEs encadrés par professeur (barres horizontales)
+ *   - Soutenances par filière      (donut)
+ *   - Participations aux jurys par prof (courbe)
+ *
+ * Panneau conformité :
+ *   - Équité d'encadrement (seuil min/max ±1 par rapport à la moyenne)
+ *   - Conformité planning  (chevauchements, repos < 1h entre 2 jurys d'un même prof)
+ */
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
 
-    private final DashboardService dashboardService;
-    private final SalleService salleService;
-    private final SoutenanceRepository soutenanceRepository;
-    private final ImportVersionRepository versionRepository;
+    private final DashboardService service;
 
-    public DashboardController(DashboardService dashboardService,
-                               SalleService salleService,
-                               SoutenanceRepository soutenanceRepository,
-                               ImportVersionRepository versionRepository) {
-        this.dashboardService     = dashboardService;
-        this.salleService         = salleService;
-        this.soutenanceRepository = soutenanceRepository;
-        this.versionRepository    = versionRepository;
+    public DashboardController(DashboardService service){
+        this.service = service;
     }
 
     @GetMapping
     public String dashboard(HttpSession session, Model model) {
+
         Long versionId = (Long) session.getAttribute("versionId");
-        boolean etape2 = session.getAttribute("etape2") != null;
-        boolean etape4 = session.getAttribute("etape4") != null;
 
+        // Aucune version → page vide
         if (versionId == null) {
-            redirect();
+            model.addAttribute("noData", true);
+            return "dashboard";
         }
+        // ── Soutenances : session d'abord, sinon BDD ───────────────────
+        SchedulingSolution sol = (SchedulingSolution) session.getAttribute("validatedSolution");
+        // ── Statistiques globales ──────────────────────────────────────
+        Map<String, Object> statsGlobales = service.statsGlobales(sol, versionId);
 
-        ImportVersion version = versionRepository.findById(versionId).orElse(null);
-        if (version == null) {
-            redirect();
-        }
+        // ── Chart 1 : PFEs encadrés par prof ──────────────────────────
+        List<Map<String, Object>> pfesParEncadrant = service.pfesParEncadrant(versionId);
+        // ── Chart 2 : Soutenances par filière ─────────────────────────
+        List<Map<String, Object>> soutenancesParFiliere = service.soutenancesParFiliere(sol, versionId);
+        // ── Chart 3 : Participations aux jurys par prof ───────────────
+        List<Map<String, Object>> soutenancesParProf = service.soutenancesParProf(versionId);
 
-        if (!etape4) {
-            redirect();
-        }
-
-        List<Soutenance> soutenances = soutenanceRepository
-                .findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(version);
-
-        model.addAttribute("noData", false);
-        model.addAttribute("statsGlobales", dashboardService.statsGlobales(versionId));
-        model.addAttribute("pfesParEncadrant", etape2 ? dashboardService.pfesParEncadrant(versionId) : List.of());
-        model.addAttribute("soutenancesParProf", dashboardService.soutenancesParProf(versionId));
-        model.addAttribute("soutenancesParFiliere", dashboardService.soutenancesParFiliere(versionId));
-        model.addAttribute("anomaliesEncadrement", etape2 ? dashboardService.anomaliesEncadrement(versionId) : List.of());
-        model.addAttribute("anomaliesPlanning", salleService.detecterAnomalies(soutenances));
-
+        // ── Anomalies équité d'encadrement ────────────────────────────
+        List<Map<String, Object>> anomaliesEncadrement = service.anomaliesEncadrement(versionId);
+        // ── Anomalies planning ────────────────────────────────────────
+        List<String> anomaliesPlanning = service.detecterAnomaliesPlanning(sol, versionId);
+        // ── Modèle ────────────────────────────────────────────────────
+        model.addAttribute("noData",               false);
+        model.addAttribute("statsGlobales",        statsGlobales);
+        model.addAttribute("pfesParEncadrant",     pfesParEncadrant);
+        model.addAttribute("soutenancesParFiliere", soutenancesParFiliere);
+        model.addAttribute("soutenancesParProf",   soutenancesParProf);
+        model.addAttribute("anomaliesEncadrement", anomaliesEncadrement);
+        model.addAttribute("anomaliesPlanning",    anomaliesPlanning);
         return "dashboard";
-    }
-
-    private void redirect() {
-        throw new RuntimeException("Vous devez effectuer la planification des soutenances avant de consulter le tableau de bord");
     }
 }

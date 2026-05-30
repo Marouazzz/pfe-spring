@@ -23,7 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-
 @Entity(name="pfes")
 @Getter
 @Setter
@@ -38,7 +37,7 @@ public class PFE {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable=false)
+    @Column(nullable=true)
     private String sujet;
 
     @Column
@@ -48,10 +47,9 @@ public class PFE {
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private Status status = Status.DRAFT;
-    //langue ajoute
-    @Enumerated(EnumType.STRING)
-    @Column(name = "langue", nullable = true)
-    private Langue langue;
+
+    @Column(nullable = true)
+    private String langue;
 
 
     @OneToMany(mappedBy = "pfe", fetch = FetchType.EAGER)

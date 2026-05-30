@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
 import org.sid.pfespring.model.ImportVersion;
 import org.sid.pfespring.model.Salle;
 import org.sid.pfespring.model.Soutenance;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SoutenanceRepository extends JpaRepository<Soutenance, Long> {
     @Modifying
+    @Transactional
     @Query("DELETE FROM Soutenance s WHERE s.version = :version")
     void deleteSoutenancesByVersion(@Param("version") ImportVersion version);
     /**
@@ -24,6 +26,5 @@ public interface SoutenanceRepository extends JpaRepository<Soutenance, Long> {
      * par date, puis heure de début, puis nom de salle.
      */
     List<Soutenance> findByVersionOrderByDateSoutenanceAscHeureDebutAscSalleNomSalleAsc(ImportVersion version);
-
 
 }

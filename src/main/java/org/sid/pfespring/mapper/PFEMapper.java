@@ -8,7 +8,6 @@ import org.sid.pfespring.dto.ResponseEtudiantDTO;
 import org.sid.pfespring.dto.ResponsePFEDTO;
 import org.sid.pfespring.dto.ResponseProfDTO;
 import org.sid.pfespring.exception.NotSupportedLanguageException;
-import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.springframework.stereotype.Component;
 
@@ -27,13 +26,10 @@ public class PFEMapper implements GenericMapper<PFE,RequestPFEDTO, ResponsePFEDT
 
     @Override
     public PFE toEntity(RequestPFEDTO dto) {
-        Langue langue = null;
-        if (dto.langue() != null && !dto.langue().isBlank()) {
-            try { langue = Langue.valueOf(dto.langue()); } catch (Exception e) {
-                throw  new NotSupportedLanguageException( "La langue du PFE n'est pas prise en charge.");
-            }
+        if (dto.langue() == null || dto.langue().isBlank()) {
+            throw  new NotSupportedLanguageException( "La langue du PFE n'est pas prise en charge.");
         }
-        return PFE.builder().sujet(dto.sujet()).filiere(dto.filiere()).langue(langue).build();
+        return PFE.builder().sujet(dto.sujet()).filiere(dto.filiere()).langue(dto.langue()).build();
     }
 
     @Override

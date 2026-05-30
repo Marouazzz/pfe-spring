@@ -5,10 +5,7 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.sid.pfespring.dto.ResponseSalleDTO;
-import org.sid.pfespring.dto.ResponseSoutenanceDTO;
 import org.sid.pfespring.model.ImportVersion;
-import org.sid.pfespring.model.Soutenance;
-import java.io.IOException;
 public interface SalleService{
 
     /**
@@ -22,19 +19,4 @@ public interface SalleService{
      * Une seule date suffit — l'algo calcule les jours ouvrés suivants.
      */
     LocalDate importDateDebut(Sheet sheet);
-
-    /**
-     * Lance la planification à partir d'une date de début.
-     * L'algo génère automatiquement les jours ouvrés nécessaires
-     * pour caser 75 soutenances (pas de weekend).
-     */
-    List<ResponseSoutenanceDTO> affecterSalles(LocalDate dateDebut, Long versionId);
-
-    /**
-     * Génère le fichier Excel du planning trié.
-     */
-    byte[] exportPlanningExcel(Long versionId) throws IOException;
-    byte[] exportPlanningPDF(Long versionId) throws IOException;
-
-    List<String> detecterAnomalies(List<Soutenance> soutenances);
 }
