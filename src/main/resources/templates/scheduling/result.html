@@ -3,359 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultats — Planification PFE</title>
+    <title>Résultats — Planification PFE</title>
     <link rel="stylesheet" th:href="@{/css/upload.css}">
-    <style>
-        /* ── Layout ── */
-        .results-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-        .results-wrap.single { grid-template-columns: 1fr; max-width: 640px; }
-
-        .card {
-            background: #fff; border-radius: 10px; padding: 1.4rem;
-            border: 1px solid #e8edf3;
-        }
-        .card-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 1rem; padding-bottom: .75rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .card-title { font-size: .95rem; font-weight: 700; color: #1F4E79; }
-        .card-meta  { font-size: .75rem; color: #999; }
-
-        /* ── Statut badge ── */
-        .status-badge {
-            display: inline-block; padding: 2px 10px; border-radius: 12px;
-            font-size: .75rem; font-weight: 700;
-        }
-        .status-ok      { background: #C6EFCE; color: #276221; }
-        .status-partial { background: #FFEB9C; color: #9C6500; }
-
-        /* ── Score ── */
-        .score-block {
-            display: flex; align-items: center; gap: 1rem;
-            background: #f7f9fc; border-radius: 8px;
-            padding: .75rem 1rem; margin-bottom: 1rem;
-        }
-        .score-value {
-            font-size: 1.6rem; font-weight: 700; color: #1F4E79;
-            min-width: 56px; text-align: center;
-        }
-        .score-detail { font-size: .82rem; color: #555; }
-        .score-detail strong { color: #1F4E79; }
-
-        /* ── Table apercu ── */
-        .table-wrap { max-height: 300px; overflow-y: auto; border-radius: 6px; border: 1px solid #e8edf3; }
-        .planning-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
-        .planning-table th {
-            background: #1F4E79; color: #fff; padding: 6px 10px;
-            text-align: left; position: sticky; top: 0; z-index: 1;
-        }
-        .planning-table td { padding: 5px 10px; border-bottom: 1px solid #f5f5f5; }
-        .planning-table tr:hover td { background: #f5f9ff; }
-
-        /* ── Non planifiees ── */
-        .conflict-block {
-            background: #FFF5F5; border: 1px solid #FFCCCC;
-            border-radius: 6px; padding: .75rem 1rem;
-            margin-bottom: 1rem; font-size: .82rem;
-        }
-        .conflict-block p { font-weight: 700; color: #9C0006; margin-bottom: .4rem; }
-        .conflict-block li { color: #9C0006; padding: 2px 0; }
-
-        /* ── Alerte partielle ── */
-        .alert-partial {
-            background: #FFF3CD; border-left: 4px solid #FFC107;
-            padding: .8rem 1rem; border-radius: 6px;
-            font-size: .85rem; margin-bottom: 1.2rem;
-        }
-        .alert-partial strong { color: #856404; }
-
-        /* ── Rapport comparaison ── */
-        .rapport-card { margin-top: 1.2rem; }
-        .rapport-title { font-size: .95rem; font-weight: 700; color: #1F4E79; margin-bottom: .8rem; }
-        .rapport-conclusion {
-            background: #EAF4E8; border-left: 3px solid #276221;
-            padding: .75rem 1rem; border-radius: 6px;
-            font-size: .85rem; margin-bottom: 1rem; color: #276221;
-        }
-        .rapport-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
-        .rapport-table th {
-            text-align: left; padding: 6px 10px;
-            background: #f5f5f5; font-weight: 600; color: #444;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        .rapport-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
-        .delta-up   { color: #276221; font-weight: 700; }
-        .delta-down { color: #9C0006; font-weight: 700; }
-        .delta-eq   { color: #888; }
-
-        /* ── Actions ── */
-        .action-row {
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: .75rem;
-            background: #f5f8fc; border-radius: 8px;
-            padding: .9rem 1rem; margin-top: 1rem;
-        }
-        .btn-validate {
-            background: #276221; color: #fff; border: none;
-            padding: .6rem 1.5rem; border-radius: 7px;
-            font-size: .88rem; font-weight: 700; cursor: pointer;
-        }
-        .btn-validate:hover { background: #1a4316; }
-
-        /* ── Back ── */
-        .back-link { font-size: .85rem; color: #1F4E79; text-decoration: none; }
-        .back-link:hover { text-decoration: underline; }
-
-        @media (max-width: 680px) {
-            .results-wrap { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/result.css}">
 </head>
 <body>
 
-<nav>
-    <span class="brand">Gestion PFE</span>
+<nav style="background: var(--primary); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; border-bottom: 2px solid var(--primary-dark);">
+    <span class="brand" style="color: white; font-size: 1.1rem; font-weight: 700;">Gestion PFE</span>
     <div>
-        <a th:href="@{/home}">Orchestration</a>
-        <a class="active">Resultats</a>
+        <a th:href="@{/home}" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s;">Orchestration</a>
+        <a class="active" style="color: white; text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px; background: rgba(255,255,255,0.15);">Résultats</a>
     </div>
 </nav>
 
-<div class="page">
+<div class="page results-page" role="main">
     <div class="container">
-
-        <!-- En-tete -->
-        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.2rem;">
+        
+        <!-- En-tête -->
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
             <div>
-                <h1 class="page-title" style="margin-bottom:.2rem;">Resultats de planification</h1>
-                <p class="page-sub">Selectionnez et validez la solution a conserver.</p>
+                <h1 class="page-title" style="margin-bottom:0.4rem;text-align:left;font-family:'Manrope',sans-serif;font-size:2rem;font-weight:800;color:var(--primary);letter-spacing:-0.02em;">Résultats de planification</h1>
+                <p class="page-sub" style="text-align:left;margin:0;color:var(--text-muted);font-size:0.95rem;">Sélectionnez et validez la solution à conserver.</p>
             </div>
-            <a th:href="@{/home}" class="back-link">Retour au workflow</a>
+            <a th:href="@{/home}" style="font-size:0.9rem;color:var(--primary);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;transition:gap 0.2s;" onmouseover="this.style.gap='0.6rem'" onmouseout="this.style.gap='0.4rem'">
+                <span>←</span> Retour au workflow
+            </a>
         </div>
 
         <!-- Alerte conflits -->
-        <div class="alert-partial" th:if="${result.hasConflicts}">
+        <div class="alert-partial" th:if="${result.hasConflicts}" role="alert">
             <strong>Attention :</strong>
             <span th:text="${result.alerteMessage}"></span>
             <span th:if="${result.optimise != null}">
-                Le mode optimise peut placer davantage de soutenances.
+                Le mode optimisé peut placer davantage de soutenances.
             </span>
         </div>
 
-        <!--Grille solutions -->
-        <div th:class="${result.strict != null and result.optimise != null}
-                        ? 'results-wrap' : 'results-wrap single'">
+        <!-- RAPPORT DE COMPARAISON -->
+        <div class="result-card rapport-card" th:if="${result.rapport != null}">
+            <p class="rapport-title">Rapport de comparaison</p>
+            <div class="rapport-conclusion" th:text="${result.rapport.conclusion}"></div>
+            
+            <div class="report-table-wrap">
+                <table class="rapport-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Critère</th>
+                            <th scope="col" style="text-align:center;">Strict</th>
+                            <th scope="col" style="text-align:center;">Optimisé</th>
+                            <th scope="col" style="text-align:center;">Évolution</th>
+                            <th scope="col">Explication</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="imp : ${result.rapport.ameliorations}">
+                            <td th:text="${imp.critere}" style="font-weight:700;color:var(--text-primary);"></td>
+                            <td>
+                                <div class="pct-bar">
+                                    <div class="pct-track">
+                                        <div class="pct-fill" 
+                                             th:style="'--target-width: ' + ${#numbers.formatDecimal(imp.avant * 100, 0, 1)} + '%; background: var(--strict);'"
+                                             th:title="${#numbers.formatDecimal(imp.avant * 100, 0, 1)} + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="pct-val" 
+                                          th:text="${#numbers.formatDecimal(imp.avant * 100, 0, 1)} + '%'"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pct-bar">
+                                    <div class="pct-track">
+                                        <div class="pct-fill" 
+                                             th:style="'--target-width: ' + ${#numbers.formatDecimal(imp.apres * 100, 0, 1)} + '%; background: var(--primary);'"
+                                             th:title="${#numbers.formatDecimal(imp.apres * 100, 0, 1)} + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="pct-val" 
+                                          th:text="${#numbers.formatDecimal(imp.apres * 100, 0, 1)} + '%'"></span>
+                                </div>
+                            </td>
+                            <td style="text-align:center;">
+                                <span th:if="${imp.estAmelioration()}" class="delta-up"
+                                      th:text="'+' + ${#numbers.formatDecimal(imp.deltaPourcent(), 0, 1)} + '%'"></span>
+                                <span th:if="${!imp.estAmelioration() and imp.avant != imp.apres}" class="delta-down"
+                                      th:text="${#numbers.formatDecimal(imp.deltaPourcent(), 0, 1)} + '%'"></span>
+                                <span th:if="${imp.avant == imp.apres}" class="delta-eq">—</span>
+                            </td>
+                            <td th:text="${imp.explication}" th:title="${imp.explication}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            <!-- STRICT  -->
-            <div class="card" th:if="${result.strict != null}">
+        <!-- GRILLE DES RÉSULTATS -->
+        <div class="results-grid" 
+             th:classappend="${result.strict != null and result.optimise != null} ? 'results-grid--dual' : ''">
 
-                <div class="card-header">
-                    <span class="card-title">Algorithme strict</span>
-                    <div style="display:flex;align-items:center;gap:.6rem;">
-                        <span class="status-badge"
-                              th:classappend="${result.strict.status.name() == 'COMPLETE'}
-                                              ? ' status-ok' : ' status-partial'"
-                              th:text="${result.strict.status.name() == 'COMPLETE'}
-                                        ? 'Complet' : 'Partiel'">
-                        </span>
-                        <!--    <span class="card-meta"
-                                 th:text="${result.strict.dureeCalculMs} + ' ms'"></span> -->
-                       </div>
-                   </div>
+            <!-- CARD : STRICT - Thème ROUGE #f95959 -->
+            <article class="result-card result-card--strict" th:if="${result.strict != null}">
+                <header class="card-head card-head--strict">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div class="icon-box" style="width:40px;height:40px;background:linear-gradient(135deg, var(--strict), var(--strict-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px var(--strict-glow);">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="card-title" style="margin:0;font-size:1.15rem;">Algorithme strict</h2>
+                            <p style="margin:0;font-size:0.8rem;color:var(--text-muted);font-weight:500;">Règles de planification rigoureuses</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-badge--strict"
+                          th:classappend="${result.strict.status.name() == 'COMPLETE'} ? ' status-ok' : ' status-partial'"
+                          th:text="${result.strict.status.name() == 'COMPLETE'} ? '✓ Complet' : '⚠ Partiel'">
+                    </span>
+                </header>
 
-                   <!-- Score -->
-                <div class="score-block">
-                    <div class="score-value"
-                         th:text="${#numbers.formatDecimal(result.strict.score.global * 100, 0, 0)} + '%'">
+                <!-- Score circulaire -->
+                <div class="score-block score-block--strict">
+                    <div class="score-circle score-circle--strict" 
+                         th:style="'--score-pct: ' + ${#numbers.formatDecimal(result.strict.score.global * 100, 0, 0)}">
+                        <svg viewBox="0 0 72 72">
+                            <circle class="score-circle-bg" cx="36" cy="36" r="32"></circle>
+                            <circle class="score-circle-progress" cx="36" cy="36" r="32"></circle>
+                        </svg>
+                        <div class="score-value" th:text="${#numbers.formatDecimal(result.strict.score.global * 100, 0, 0)} + '%'"></div>
                     </div>
                     <div class="score-detail">
-                        <strong th:text="${result.strict.score.planifiees}"></strong>
-                        soutenance(s) planifiee(s)
-                        <br th:if="${result.strict.score.nonPlanifiees > 0}">
-                        <span th:if="${result.strict.score.nonPlanifiees > 0}"
-                              style="color:#9C0006;">
-                            <span th:text="${result.strict.score.nonPlanifiees}"></span>
-                            en conflit
-                        </span>
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+                            <span style="font-size:1.5rem;font-weight:800;color:#b91c1c;" th:text="${result.strict.score.planifiees}"></span>
+                            <span style="color:var(--text-muted);font-size:0.9rem;">soutenances planifiées</span>
+                        </div>
+                        <div th:if="${result.strict.score.nonPlanifiees > 0}" 
+                             style="display:inline-flex;align-items:center;gap:0.4rem;background:rgba(249,89,89,0.15);color:#b91c1c;padding:0.25rem 0.6rem;border-radius:6px;font-size:0.85rem;font-weight:600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span th:text="${result.strict.score.nonPlanifiees} + ' en conflit'"></span>
+                        </div>
+                        <div th:if="${result.strict.score.nonPlanifiees == 0}" 
+                             style="display:inline-flex;align-items:center;gap:0.4rem;background:rgba(16,185,129,0.15);color:#047857;padding:0.25rem 0.6rem;border-radius:6px;font-size:0.85rem;font-weight:600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span>Aucun conflit</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Soutenances en conflit -->
-                <div class="conflict-block"
-                     th:if="${not #lists.isEmpty(result.strict.soutenancesEnConflit)}">
-                    <p>Soutenances non planifiees :</p>
-                    <ul style="margin:0;padding-left:1.2rem;">
-                        <li th:each="s : ${result.strict.soutenancesEnConflit}"
-                            th:text="${s.pfe.sujet} + ' — ' + ${s.raisonNonPlacement}">
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Apercu planning -->
-                <div class="table-wrap">
-                    <table class="planning-table">
+                <!-- Table planning (MAINTENANT AVANT les conflits) -->
+                <div class="table-wrap table-wrap--strict" role="region" aria-label="Planning strict">
+                    <table class="planning-table planning-table--strict">
+                        <caption class="visually-hidden">Soutenances planifiées - Algorithme strict</caption>
                         <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Debut</th>
-                            <th>Salle</th>
-                            <th>Sujet</th>
-                            <th>Encadrant</th>
-                        </tr>
+                            <tr>
+                                <th scope="col" style="width:13%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Date</th>
+                                <th scope="col" style="width:10%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Début</th>
+                                <th scope="col" style="width:15%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Salle</th>
+                                <th scope="col" style="width:37%;">Sujet</th>
+                                <th scope="col" style="width:25%;">Encadrant</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="s : ${result.strict.soutenancesPlanifiees}">
-                            <td th:text="${s.slot.date}"></td>
-                            <td th:text="${s.slot.heureDebut}"></td>
-                            <td th:text="${s.salle.nomSalle}"></td>
-                            <td th:text="${s.pfe.sujet}"></td>
-                            <td th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}"></td>
-                        </tr>
+                            <tr th:each="s, iterStat : ${result.strict.soutenancesPlanifiees}" 
+                                style="animation:rowSlideIn 0.3s ease backwards;" 
+                                th:style="'animation-delay: ' + ${iterStat.index * 0.04} + 's;'">
+                                <td th:text="${s.slot.date}" th:title="${s.slot.date}"></td>
+                                <td th:text="${s.slot.heureDebut}" th:title="${s.slot.heureDebut}" style="font-family:'DM Mono',monospace;"></td>
+                                <td th:text="${s.salle.nomSalle}" th:title="${s.salle.nomSalle}">
+                                    <span class="room-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;"></span>
+                                    <span th:text="${s.salle.nomSalle}"></span>
+                                </td>
+                                <td th:text="${s.pfe.sujet}" th:title="${s.pfe.sujet}"></td>
+                                <td th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}" 
+                                    th:title="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}">
+                                    <div class="avatar" style="width:28px;height:28px;background:linear-gradient(135deg, var(--strict), var(--strict-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.75rem;"
+                                         th:text="${#strings.toUpperCase(#strings.substring(s.jury.encadrant.nom, 0, 1) + #strings.substring(s.jury.encadrant.prenom, 0, 1))}">
+                                    </div>
+                                    <span th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}"></span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(result.strict.soutenancesPlanifiees)}">
+                                <td colspan="5" style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                        </svg>
+                                        <div>
+                                            <div style="font-weight:600;color:#64748b;">Aucune soutenance planifiée</div>
+                                            <div style="font-size:0.85rem;color:#94a3b8;">L'algorithme n'a trouvé aucune solution valide</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Actions -->
-                <div class="action-row">
-                    <span style="font-size:.78rem;color:#666;">
-                        Ce planning sera sauvegarde et l'etape 4 validee.
+                <!-- Conflits détaillés (MAINTENANT APRÈS la table) -->
+                <div class="conflict-block conflict-block--strict" th:if="${not #lists.isEmpty(result.strict.soutenancesEnConflit)}">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <strong>Soutenances non planifiées</strong>
+                        <span style="background:var(--strict);color:white;padding:0.15rem 0.5rem;border-radius:99px;font-size:0.75rem;font-weight:700;" 
+                              th:text="${#lists.size(result.strict.soutenancesEnConflit)}"></span>
+                    </div>
+                    <ul style="list-style:none;padding:0;margin:0;">
+                        <li th:each="s, iterStat : ${result.strict.soutenancesEnConflit}" 
+                            style="padding:0.6rem 0.75rem;background:rgba(255,255,255,0.6);border-radius:6px;margin-bottom:0.4rem;font-size:0.85rem;display:flex;align-items:flex-start;gap:0.5rem;animation:rowSlideIn 0.3s ease backwards;"
+                            th:style="'animation-delay: ' + ${iterStat.index * 0.05} + 's;'">
+                            <span style="color:var(--strict);font-weight:700;flex-shrink:0;" th:text="${iterStat.index + 1} + '.'"></span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:#1e293b;margin-bottom:0.2rem;" th:text="${s.pfe.sujet}"></div>
+                                <div style="color:#64748b;font-size:0.8rem;" th:text="${s.raisonNonPlacement}"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <footer class="action-row action-row--strict">
+                    <span style="font-size:0.825rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Planning sécurisé et validé
                     </span>
                     <form th:action="@{/scheduling/valider}" method="post">
                         <input type="hidden" name="algorithme" value="STRICT">
-                        <button type="submit" class="btn-validate">Valider ce planning</button>
+                        <button type="submit" class="btn-validate btn-validate--strict">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Valider ce planning
+                        </button>
                     </form>
-                </div>
-            </div>
+                </footer>
+            </article>
 
-            <!--  OPTIMISE -->
-            <div class="card" th:if="${result.optimise != null}">
-
-                <div class="card-header">
-                    <span class="card-title">Algorithme optimise</span>
-                    <div style="display:flex;align-items:center;gap:.6rem;">
-                        <span class="status-badge"
-                              th:classappend="${result.optimise.status.name() == 'COMPLETE'}
-                                              ? ' status-ok' : ' status-partial'"
-                              th:text="${result.optimise.status.name() == 'COMPLETE'}
-                                        ? 'Complet' : 'Partiel'">
-                        </span>
-                        <!-- span class="card-meta"
-                              th:text="${result.optimise.dureeCalculMs} + ' ms'"></span> -->
+            <!-- CARD : OPTIMISÉ - Thème Vert/Teal -->
+            <article class="result-card result-card--optimized" th:if="${result.optimise != null}">
+                <header class="card-head card-head--optimized">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:40px;height:40px;background:linear-gradient(135deg, #10b981, #059669);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(16, 185, 129, 0.3);">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="card-title" style="margin:0;font-size:1.15rem;">Algorithme optimisé</h2>
+                            <p style="margin:0;font-size:0.8rem;color:var(--text-muted);font-weight:500;">Maximisation des placements</p>
+                        </div>
                     </div>
-                </div>
+                    <span class="status-badge status-badge--optimized"
+                          th:classappend="${result.optimise.status.name() == 'COMPLETE'} ? ' status-ok' : ' status-partial'"
+                          th:text="${result.optimise.status.name() == 'COMPLETE'} ? '✓ Complet' : '⚠ Partiel'">
+                    </span>
+                </header>
 
-                <!-- Score -->
-                <div class="score-block">
-                    <div class="score-value"
-                         th:text="${#numbers.formatDecimal(result.optimise.score.global * 100, 0, 0)} + '%'">
+                <!-- Score circulaire -->
+                <div class="score-block score-block--optimized">
+                    <div class="score-circle score-circle--optimized" 
+                         th:style="'--score-pct: ' + ${#numbers.formatDecimal(result.optimise.score.global * 100, 0, 0)}">
+                        <svg viewBox="0 0 72 72">
+                            <circle class="score-circle-bg" cx="36" cy="36" r="32" style="stroke:#d1fae5;"></circle>
+                            <circle class="score-circle-progress" cx="36" cy="36" r="32" 
+                                    style="stroke:#10b981; stroke-dasharray:201.06; stroke-dashoffset:calc(201.06 - (201.06 * var(--score-pct)) / 100);"></circle>
+                        </svg>
+                        <div class="score-value" style="color:#065f46;" 
+                             th:text="${#numbers.formatDecimal(result.optimise.score.global * 100, 0, 0)} + '%'">
+                        </div>
                     </div>
                     <div class="score-detail">
-                        <strong th:text="${result.optimise.score.planifiees}"></strong>
-                        soutenance(s) planifiee(s)
-                        <br th:if="${result.optimise.score.nonPlanifiees > 0}">
-                        <span th:if="${result.optimise.score.nonPlanifiees > 0}"
-                              style="color:#9C0006;">
-                            <span th:text="${result.optimise.score.nonPlanifiees}"></span>
-                            en conflit
-                        </span>
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+                            <span style="font-size:1.5rem;font-weight:800;color:#047857;" th:text="${result.optimise.score.planifiees}"></span>
+                            <span style="color:var(--text-muted);font-size:0.9rem;">soutenances planifiées</span>
+                        </div>
+                        <div th:if="${result.optimise.score.nonPlanifiees > 0}" 
+                             style="display:inline-flex;align-items:center;gap:0.4rem;background:#fef3c7;color:#92400e;padding:0.25rem 0.6rem;border-radius:6px;font-size:0.85rem;font-weight:600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span th:text="${result.optimise.score.nonPlanifiees} + ' en conflit'"></span>
+                        </div>
+                        <div th:if="${result.optimise.score.nonPlanifiees == 0}" 
+                             style="display:inline-flex;align-items:center;gap:0.4rem;background:#d1fae5;color:#065f46;padding:0.25rem 0.6rem;border-radius:6px;font-size:0.85rem;font-weight:600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span>Optimisation parfaite</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Soutenances en conflit -->
-                <div class="conflict-block"
-                     th:if="${not #lists.isEmpty(result.optimise.soutenancesEnConflit)}">
-                    <p>Soutenances non planifiees :</p>
-                    <ul style="margin:0;padding-left:1.2rem;">
-                        <li th:each="s : ${result.optimise.soutenancesEnConflit}"
-                            th:text="${s.pfe.sujet} + ' — ' + ${s.raisonNonPlacement}">
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Apercu planning -->
-                <div class="table-wrap">
-                    <table class="planning-table">
+                <!-- Table planning (AVANT les conflits) -->
+                <div class="table-wrap table-wrap--optimized" role="region" aria-label="Planning optimisé">
+                    <table class="planning-table planning-table--optimized">
+                        <caption class="visually-hidden">Soutenances planifiées - Algorithme optimisé</caption>
                         <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Debut</th>
-                            <th>Salle</th>
-                            <th>Sujet</th>
-                            <th>Encadrant</th>
-                        </tr>
+                            <tr>
+                                <th scope="col" style="width:13%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Date</th>
+                                <th scope="col" style="width:10%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Début</th>
+                                <th scope="col" style="width:15%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Salle</th>
+                                <th scope="col" style="width:37%;">Sujet</th>
+                                <th scope="col" style="width:25%;">Encadrant</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="s : ${result.optimise.soutenancesPlanifiees}">
-                            <td th:text="${s.slot.date}"></td>
-                            <td th:text="${s.slot.heureDebut}"></td>
-                            <td th:text="${s.salle.nomSalle}"></td>
-                            <td th:text="${s.pfe.sujet}"></td>
-                            <td th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}"></td>
-                        </tr>
+                            <tr th:each="s, iterStat : ${result.optimise.soutenancesPlanifiees}" 
+                                style="animation:rowSlideIn 0.3s ease backwards;" 
+                                th:style="'animation-delay: ' + ${iterStat.index * 0.04} + 's;'">
+                                <td th:text="${s.slot.date}" th:title="${s.slot.date}" style="font-weight:600;color:#065f46;"></td>
+                                <td th:text="${s.slot.heureDebut}" th:title="${s.slot.heureDebut}" style="font-family:'DM Mono',monospace;font-weight:600;color:#0d9488;"></td>
+                                <td th:text="${s.salle.nomSalle}" th:title="${s.salle.nomSalle}">
+                                    <span style="display:inline-block;width:6px;height:6px;background:#10b981;border-radius:50%;"></span>
+                                    <span th:text="${s.salle.nomSalle}"></span>
+                                </td>
+                                <td th:text="${s.pfe.sujet}" th:title="${s.pfe.sujet}" style="color:#334155;"></td>
+                                <td th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}" 
+                                    th:title="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}">
+                                    <div style="width:28px;height:28px;background:linear-gradient(135deg, #34d399, #10b981);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.75rem;"
+                                         th:text="${#strings.toUpperCase(#strings.substring(s.jury.encadrant.nom, 0, 1) + #strings.substring(s.jury.encadrant.prenom, 0, 1))}">
+                                    </div>
+                                    <span th:text="${s.jury.encadrant.nom + ' ' + s.jury.encadrant.prenom}"></span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(result.optimise.soutenancesPlanifiees)}">
+                                <td colspan="5" style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                        </svg>
+                                        <div>
+                                            <div style="font-weight:600;color:#64748b;">Aucune soutenance planifiée</div>
+                                            <div style="font-size:0.85rem;color:#94a3b8;">L'optimisation n'a trouvé aucune solution</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Actions -->
-                <div class="action-row">
-                    <span style="font-size:.78rem;color:#666;">
-                        Ce planning sera sauvegarde et l'etape 4 validee.
+                <!-- Conflits détaillés (APRÈS la table) -->
+                <div class="conflict-block conflict-block--optimized" th:if="${not #lists.isEmpty(result.optimise.soutenancesEnConflit)}">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <strong>Soutenances non planifiées</strong>
+                        <span style="background:#f59e0b;color:white;padding:0.15rem 0.5rem;border-radius:99px;font-size:0.75rem;font-weight:700;" 
+                              th:text="${#lists.size(result.optimise.soutenancesEnConflit)}"></span>
+                    </div>
+                    <ul style="list-style:none;padding:0;margin:0;">
+                        <li th:each="s, iterStat : ${result.optimise.soutenancesEnConflit}" 
+                            style="padding:0.6rem 0.75rem;background:rgba(255,255,255,0.5);border-radius:6px;margin-bottom:0.4rem;font-size:0.85rem;display:flex;align-items:flex-start;gap:0.5rem;animation:rowSlideIn 0.3s ease backwards;"
+                            th:style="'animation-delay: ' + ${iterStat.index * 0.05} + 's;'">
+                            <span style="color:#f59e0b;font-weight:700;flex-shrink:0;" th:text="${iterStat.index + 1} + '.'"></span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:#1e293b;margin-bottom:0.2rem;" th:text="${s.pfe.sujet}"></div>
+                                <div style="color:#64748b;font-size:0.8rem;" th:text="${s.raisonNonPlacement}"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <footer class="action-row action-row--optimized">
+                    <span style="font-size:0.825rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        Planning optimisé et performant
                     </span>
                     <form th:action="@{/scheduling/valider}" method="post">
                         <input type="hidden" name="algorithme" value="OPTIMISE">
-                        <button type="submit" class="btn-validate">Valider ce planning</button>
+                        <button type="submit" class="btn-validate btn-validate--optimized">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Valider ce planning
+                        </button>
                     </form>
-                </div>
-            </div>
+                </footer>
+            </article>
 
-        </div><!-- /results-wrap -->
-
-        <!-- ── RAPPORT DE COMPARAISON ─────────────────────────────── -->
-        <div class="card rapport-card" th:if="${result.rapport != null}">
-
-            <p class="rapport-title">Rapport de comparaison</p>
-
-            <div class="rapport-conclusion"
-                 th:text="${result.rapport.conclusion}">
-            </div>
-
-            <!-- Tableau des criteres qui ont change -->
-            <table class="rapport-table">
-                <thead>
-                <tr>
-                    <th>Critere</th>
-                    <th style="text-align:center;">Strict</th>
-                    <th style="text-align:center;">Optimise</th>
-                    <th style="text-align:center;">Evolution</th>
-                    <th>Explication</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="imp : ${result.rapport.ameliorations}">
-                    <td th:text="${imp.critere}" style="font-weight:600;"></td>
-                    <td th:text="${#numbers.formatDecimal(imp.avant * 100, 0, 1)} + '%'"
-                        style="text-align:center; color:#666;"></td>
-                    <td th:text="${#numbers.formatDecimal(imp.apres * 100, 0, 1)} + '%'"
-                        style="text-align:center; font-weight:700;"></td>
-                    <td style="text-align:center;">
-                            <span th:if="${imp.estAmelioration()}"
-                                  class="delta-up"
-                                  th:text="'+' + ${#numbers.formatDecimal(imp.deltaPourcent(), 0, 1)} + '%'">
-                            </span>
-                        <span th:if="${!imp.estAmelioration() and imp.avant != imp.apres}"
-                              class="delta-down"
-                              th:text="${#numbers.formatDecimal(imp.deltaPourcent(), 0, 1)} + '%'">
-                            </span>
-                        <span th:if="${imp.avant == imp.apres}" class="delta-eq">—</span>
-                    </td>
-                    <td th:text="${imp.explication}"
-                        style="font-size:.78rem;color:#666;"></td>
-                </tr>
-                </tbody>
-            </table>
         </div>
-
     </div>
 </div>
 

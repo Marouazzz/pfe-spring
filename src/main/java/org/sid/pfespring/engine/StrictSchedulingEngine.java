@@ -1,15 +1,20 @@
 package org.sid.pfespring.engine;
 
-import org.sid.pfespring.constraints.hard.SchedulingConstraint;
-import org.sid.pfespring.model.Jury;
-import org.sid.pfespring.model.Salle;
-import org.sid.pfespring.model.scheduling.*;
-import org.sid.pfespring.services.scheduling.ConstraintRegistry;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.sid.pfespring.constraints.hard.SchedulingConstraint;
+import org.sid.pfespring.model.Jury;
+import org.sid.pfespring.model.Salle;
+import org.sid.pfespring.model.scheduling.ConstraintViolation;
+import org.sid.pfespring.model.scheduling.PlannedSoutenance;
+import org.sid.pfespring.model.scheduling.SchedulingContext;
+import org.sid.pfespring.model.scheduling.SchedulingSolution;
+import org.sid.pfespring.model.scheduling.SolutionScore;
+import org.sid.pfespring.model.scheduling.TimeSlot;
+import org.sid.pfespring.services.scheduling.ConstraintRegistry;
+import org.springframework.stereotype.Component;
 
 /**
  * Algorithme STRICT — placement séquentiel greedy.
@@ -89,7 +94,6 @@ public class StrictSchedulingEngine {
                     // Si valide → placement
                     // ─────────────────────────────────
                     if (valide) {
-
                         PlannedSoutenance placed =
                                 PlannedSoutenance.builder()
                                         .pfe(jury.getPfe())
@@ -102,7 +106,6 @@ public class StrictSchedulingEngine {
                                                         + " — salle "
                                                         + salle.getNomSalle())
                                         .build();
-
                         result.add(placed);
 
                         justifications.add(

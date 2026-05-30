@@ -1,5 +1,6 @@
 package org.sid.pfespring.services;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
@@ -122,4 +125,36 @@ public class FileSystemServiceImpl implements FileSystemService{
             });
 }
 
+    @Override
+    public byte[] generateZip(Long versionId) throws IOException {
+        Path root = Paths.get(rootFolder);
+        if (!Files.exists(root)) {
+            return new byte[0];
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            Files.list(root)
+            .filter(Files::isDirectory)
+            .filter(p -> p.getFileName().toString().endsWith("_v" + versionId))
+            .forEach(profDir -> {
+        try {
+            Files.list(profDir)
+            .filter(f -> f.toString().endsWith(".docx"))
+            .forEach(file -> {
+                try {
+                    String zipEntryName = profDir.getFileName() + "/" + file.getFileName();
+                    zos.putNextEntry(new ZipEntry(zipEntryName));
+                    zos.write(Files.readAllBytes(file));
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    });
+}
+    return baos.toByteArray();
+}
 }

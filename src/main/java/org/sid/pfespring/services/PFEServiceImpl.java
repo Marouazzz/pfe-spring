@@ -1,5 +1,4 @@
 package org.sid.pfespring.services;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,18 +26,14 @@ import org.sid.pfespring.model.Encadrant;
 import org.sid.pfespring.model.Etudiant;
 import org.sid.pfespring.model.Filiere;
 import org.sid.pfespring.model.ImportVersion;
-//import org.sid.pfespring.model.Langue;
 import org.sid.pfespring.model.PFE;
 import org.sid.pfespring.model.Prof;
-//import org.sid.pfespring.model.Specialite;
 import org.sid.pfespring.model.Status;
 import org.sid.pfespring.repository.EncadrantRepository;
 import org.sid.pfespring.repository.EtudiantRepository;
 import org.sid.pfespring.repository.ImportVersionRepository;
 import org.sid.pfespring.repository.PFERepository;
 import org.sid.pfespring.repository.ProfRepository;
-import org.sid.pfespring.utils.ExcelGenerator;
-import org.sid.pfespring.utils.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -269,58 +264,10 @@ private boolean matchesLanguage(Encadrant e, PFE pfe) {
 }
 
 
-
-
     @Override
-    public void createPVFolder(Long id ){
+    public void createPVFolder(Long id){
         ImportVersion version = versionrepo.findById(id).get();
         List<Encadrant> encadrants = encadrantrepo.findByVersion(version);
         encadrants.forEach(fsService::createPVFolder);
     }
-
-
-    // @Override
-    // public byte[] exportPFEExcel(Long id) throws IOException {
-    //     ImportVersion current_version = versionrepo.findById(id).get();
-    //     List<Encadrant> encdrant = encadrantrepo.findByVersion(current_version);
-    //     Map<String, Map<Long, String>> affectations = encdrant.stream()
-    //             .collect(
-    //                     Collectors.toMap(
-    //                             e->e.getProf().toString(),
-    //                             e -> e.getPfes().stream()
-    //                                     .collect(
-    //                                             Collectors.toMap(
-    //                                                     PFE::getId,
-    //                                                     pfe -> pfe.getEtudiants().stream()
-    //                                                             .map(Etudiant::toString)
-    //                                                             .collect(Collectors.joining(", "))
-    //                                             )
-    //                                     )
-    //                             ,(map1, map2) -> { map1.putAll(map2); return map1; }
-    //                     ));
-    //     return ExcelGenerator.exportPFEAffectationSheet(affectations);
-    // }
-    // @Override
-    // public byte[] exportPFEPDF(Long id) throws IOException {
-    //     ImportVersion current_version = versionrepo.findById(id).get();
-    //     List<Encadrant> encdrant = encadrantrepo.findByVersion(current_version);
-    //     Map<String, Map<Long, String>> affectations = encdrant.stream()
-    //             .collect(
-    //                     Collectors.toMap(
-    //                             e->e.getProf().toString(),
-    //                             e -> e.getPfes().stream()
-    //                                     .collect(
-    //                                             Collectors.toMap(
-    //                                                     PFE::getId,
-    //                                                     pfe -> pfe.getEtudiants().stream()
-    //                                                             .map(Etudiant::toString)
-    //                                                             .collect(Collectors.joining(", "))
-    //                                             )
-    //                                     )
-    //                             ,(map1, map2) -> { map1.putAll(map2); return map1; }
-    //                     ));
-    //     return PDFGenerator.exportAffectationPDF(affectations);
-    // }
-
-
 }
